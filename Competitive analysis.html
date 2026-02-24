@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B2B Fusion Group — Competitive Intelligence Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a1f3a;--surface3:#141829;--border:#2a3050;--border2:#1e2440;--border3:#1a1f35;--text:#e0e4ef;--text2:#8b92a8;--text3:#6b7280;--text4:#4b5563;--accent:#60a5fa;--accent2:#3b82f6;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;--purple:#a78bfa;--cyan:#22d3ee}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+
+.login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px;width:420px;text-align:center;box-shadow:0 24px 48px rgba(0,0,0,.4)}
+.login-box h1{font-size:1.5rem;margin-bottom:4px;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-box .sub{color:var(--text2);margin-bottom:32px;font-size:.9rem}
+.login-box input{width:100%;padding:14px 16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem;margin-bottom:16px;transition:border-color .2s}
+.login-box input:focus{outline:none;border-color:var(--accent)}
+.login-box button,.refresh-btn{padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:opacity .2s}
+.login-box button{width:100%}
+.login-box button:hover,.refresh-btn:hover{opacity:.9}
+.login-error{color:var(--red);font-size:.85rem;margin-bottom:12px;display:none}
+
+.app{display:none;height:100vh;flex-direction:column}
+header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:.72rem;color:var(--text3);margin-top:2px}
+.header-right{display:flex;align-items:center;gap:12px}
+.badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:.68rem;font-weight:600}
+.badge-live{background:rgba(74,222,128,.12);color:var(--green)}
+.badge-count{background:rgba(96,165,250,.12);color:var(--accent)}
+.refresh-btn{padding:8px 16px;font-size:.75rem;border-radius:8px;display:flex;align-items:center;gap:6px}
+.refresh-btn.loading{opacity:.6;pointer-events:none}
+.refresh-status{font-size:.65rem;color:var(--text4)}
+
+.nav{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;overflow-x:auto}
+.nav-item{padding:11px 16px;font-size:.78rem;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s}
+.nav-item:hover{color:var(--text2)}
+.nav-item.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+.comp-switcher{display:flex;gap:8px;padding:12px 32px;background:#0d1117;border-bottom:1px solid var(--border3);flex-wrap:wrap}
+.comp-btn{padding:7px 14px;border-radius:8px;font-size:.73rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text3);transition:all .15s}
+.comp-btn:hover{border-color:var(--accent);color:var(--text2)}
+.comp-btn.active{background:rgba(96,165,250,.12);color:var(--accent);border-color:var(--accent2)}
+.comp-btn .ctype{font-size:.58rem;display:block;margin-top:1px;font-weight:400;opacity:.7}
+
+.content{max-width:1440px;margin:0 auto;padding:24px 32px;flex:1;overflow-y:auto}
+.view{display:none}.view.visible{display:block}
+.section{margin-bottom:28px}
+.section-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border3)}
+.section-head .icon{font-size:17px}
+.section-head h2{font-size:.9rem;font-weight:700;color:#fff}
+.section-head .freq{font-size:.62rem;color:var(--text4);margin-left:auto;background:var(--surface3);padding:3px 10px;border-radius:8px}
+
+.data-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px}
+.data-card{background:var(--surface3);border:1px solid var(--border2);border-radius:10px;padding:14px;transition:border-color .2s}
+.data-card:hover{border-color:var(--border)}
+.data-card.span2{grid-column:span 2}
+.card-label{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text4);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card-value{font-size:.8rem;color:#c0c8d8;line-height:1.6}
+.card-value strong{color:#fff;font-weight:600}
+.pos{color:var(--green)}.neg{color:var(--red)}.warn{color:var(--yellow)}.hl{color:var(--accent)}
+
+.conf{display:inline-flex;align-items:center;gap:3px;font-size:.58rem;font-weight:600}
+.conf-dot{width:5px;height:5px;border-radius:50%}
+.conf.high{color:var(--green)}.conf.high .conf-dot{background:var(--green)}
+.conf.med{color:var(--yellow)}.conf.med .conf-dot{background:var(--yellow)}
+.conf.low{color:var(--red)}.conf.low .conf-dot{background:var(--red)}
+
+.comp-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.comp-table th{text-align:left;font-size:.63rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;border-bottom:1px solid var(--border);background:#0d1117;position:sticky;top:0}
+.comp-table td{padding:10px;border-bottom:1px solid var(--surface3);color:#c0c8d8;vertical-align:top}
+.comp-table tr:hover td{background:var(--surface)}
+.comp-table .fl{font-weight:600;color:var(--text2);white-space:nowrap;width:150px}
+.comp-table .sr td{background:#0d1117;font-weight:700;color:var(--accent);font-size:.68rem;text-transform:uppercase;letter-spacing:.04em;padding:6px 10px}
+
+.alert-config{background:var(--surface3);border:1px solid var(--border2);border-radius:10px;padding:16px;margin-bottom:12px}
+.alert-config h4{font-size:.88rem;color:#fff;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.alert-detail{font-size:.76rem;color:var(--text3);margin-bottom:3px}
+.alert-detail strong{color:var(--text2)}
+.alert-example{background:#0d1117;border-left:3px solid var(--accent);padding:10px;border-radius:0 8px 8px 0;margin-top:8px;font-size:.7rem;color:var(--text2);font-family:'SF Mono',Monaco,monospace;line-height:1.5}
+
+/* Intel Feed Styles */
+.intel-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.intel-stat{background:var(--surface3);border:1px solid var(--border2);border-radius:12px;padding:18px;text-align:center;transition:border-color .2s}
+.intel-stat:hover{border-color:var(--border)}
+.intel-stat .stat-num{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.intel-stat.critical .stat-num{background:linear-gradient(135deg,var(--red),#dc2626);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.intel-stat.high .stat-num{background:linear-gradient(135deg,var(--yellow),#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.intel-stat.flagged .stat-num{background:linear-gradient(135deg,var(--cyan),#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.intel-stat .stat-label{font-size:.72rem;font-weight:600;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:.04em}
+
+.intel-filters{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.intel-filter{padding:7px 14px;border-radius:20px;font-size:.73rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text3);transition:all .15s}
+.intel-filter:hover{border-color:var(--accent);color:var(--text2)}
+.intel-filter.active{background:rgba(96,165,250,.12);color:var(--accent);border-color:var(--accent2)}
+.intel-filter .filter-count{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:10px;font-size:.6rem;background:rgba(255,255,255,.07)}
+
+.intel-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.78rem}
+.intel-table th{text-align:left;font-size:.63rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;padding:10px 12px;border-bottom:2px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:2}
+.intel-table td{padding:12px;border-bottom:1px solid var(--border3);color:#c0c8d8;vertical-align:top}
+.intel-table tr:hover td{background:var(--surface)}
+.intel-table tr.expanded td{background:var(--surface3);border-bottom:none}
+.intel-row-detail td{background:var(--surface3) !important;padding:0 12px 14px 12px}
+.intel-detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:10px 0}
+.intel-detail-item{background:#0d1117;border:1px solid var(--border3);border-radius:8px;padding:10px}
+.intel-detail-item .dl{font-size:.6rem;color:var(--text4);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.intel-detail-item .dv{font-size:.76rem;color:var(--text2)}
+
+.priority-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:.68rem;font-weight:700}
+.priority-badge.critical{background:rgba(248,113,113,.12);color:var(--red)}
+.priority-badge.high{background:rgba(251,191,36,.12);color:var(--yellow)}
+.priority-badge.medium{background:rgba(96,165,250,.12);color:var(--accent)}
+.priority-badge.low{background:rgba(75,85,99,.2);color:var(--text3)}
+.comp-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:700}
+.comp-tag.c6sense{background:rgba(96,165,250,.12);color:var(--accent)}
+.comp-tag.cdemandbase{background:rgba(167,139,250,.12);color:var(--purple)}
+.comp-tag.czoominfo{background:rgba(34,211,238,.12);color:var(--cyan)}
+.comp-tag.cg2{background:rgba(74,222,128,.12);color:var(--green)}
+.comp-tag.ctechtarget{background:rgba(251,191,36,.12);color:var(--yellow)}
+.theme-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:600;background:rgba(255,255,255,.06);color:var(--text2)}
+.route-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:600;background:rgba(96,165,250,.08);color:var(--accent)}
+.source-tag{font-size:.63rem;color:var(--text4);font-style:italic}
+.expand-btn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:.8rem;padding:2px 6px;border-radius:4px;transition:background .15s}
+.expand-btn:hover{background:rgba(96,165,250,.12)}
+.headline-link{color:var(--accent);text-decoration:none;font-weight:600}.headline-link:hover{text-decoration:underline}
+.headline-text{font-weight:600;color:#fff}
+.intel-snippet{font-size:.72rem;color:var(--text3);margin-top:3px;line-height:1.4}
+
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media(max-width:900px){.data-grid{grid-template-columns:1fr}.data-card.span2{grid-column:span 1}.comp-switcher{flex-wrap:wrap}.content{padding:16px}.comp-table{font-size:.7rem}}
+</style>
+</head>
+<body>
+
+<div class="login-overlay" id="loginOverlay">
+<div class="login-box">
+<h1>B2B Fusion Group</h1>
+<div class="sub">Competitive Intelligence Dashboard</div>
+<div class="login-error" id="loginError">Incorrect password. Try again.</div>
+<input type="password" id="loginPassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()">
+<button onclick="doLogin()">Access Dashboard</button>
+</div>
+</div>
+
+<div class="app" id="app">
+<header>
+<div>
+<div class="logo">B2B Fusion — Competitive Intel</div>
+<div class="logo-sub">ABM/SaaS Market · 5 Competitors · Cross-functional</div>
+</div>
+<div class="header-right">
+<span class="badge badge-live">5 Competitors</span>
+<span class="badge badge-count">30+ Fields</span>
+<button class="refresh-btn" onclick="refreshFromSheet()" id="refreshBtn">🔄 Refresh from Sheet</button>
+<div class="refresh-status" id="refreshStatus">Last sync: local data</div>
+</div>
+</header>
+
+<div class="nav" id="navBar"><div class="nav-item active" onclick="showView('intelfeed')">Intel Feed</div>
+<div class="nav-item" onclick="showView('profile')">Company Profile</div>
+<div class="nav-item" onclick="showView('product')">Product &amp; Positioning</div>
+<div class="nav-item" onclick="showView('market')">Market Presence</div>
+<div class="nav-item" onclick="showView('gtm')">Go-to-Market</div>
+<div class="nav-item" onclick="showView('talent')">Talent Signals</div>
+<div class="nav-item" onclick="showView('battlecard')">Sales Battlecard</div>
+<div class="nav-item" onclick="showView('compare')">Side-by-Side</div>
+<div class="nav-item" onclick="showView('routing')">Routing &amp; Config</div></div>
+
+<div class="comp-switcher" id="compSwitcher"><div class="comp-btn active" onclick="showComp('6sense',this)">6Sense<span class="ctype">Direct ABM</span></div>
+<div class="comp-btn" onclick="showComp('demandbase',this)">Demandbase<span class="ctype">Direct ABM</span></div>
+<div class="comp-btn" onclick="showComp('zoominfo',this)">ZoomInfo MarketingOS<span class="ctype">ABM + Data</span></div>
+<div class="comp-btn" onclick="showComp('g2',this)">G2<span class="ctype">Marketplace + Intent</span></div>
+<div class="comp-btn" onclick="showComp('techtarget',this)">TechTarget<span class="ctype">Media + Intent</span></div></div>
+
+<div class="content" id="mainContent">
+
+<!-- INTEL FEED (Global View) -->
+<div class="view visible" id="view-intelfeed">
+<div class="intel-summary">
+  <div class="intel-stat" id="intelTotal"><div class="stat-num" id="intelTotalNum">6</div><div class="stat-label">Total Intel Items</div></div>
+  <div class="intel-stat critical" id="intelCritical"><div class="stat-num" id="intelCriticalNum">3</div><div class="stat-label">Critical</div></div>
+  <div class="intel-stat high" id="intelHigh"><div class="stat-num" id="intelHighNum">1</div><div class="stat-label">High Priority</div></div>
+  <div class="intel-stat flagged" id="intelFlagged"><div class="stat-num" id="intelFlaggedNum">1</div><div class="stat-label">Auto-Flagged</div></div>
+</div>
+
+<div class="intel-filters" id="intelFilters">
+  <button class="intel-filter active" onclick="filterIntel('all',this)">All <span class="filter-count" id="fc-all">6</span></button>
+  <button class="intel-filter" onclick="filterIntel('6Sense',this)">6Sense <span class="filter-count" id="fc-6Sense">2</span></button>
+  <button class="intel-filter" onclick="filterIntel('Demandbase',this)">Demandbase <span class="filter-count" id="fc-Demandbase">1</span></button>
+  <button class="intel-filter" onclick="filterIntel('ZoomInfo',this)">ZoomInfo <span class="filter-count" id="fc-ZoomInfo">2</span></button>
+  <button class="intel-filter" onclick="filterIntel('G2',this)">G2 <span class="filter-count" id="fc-G2">0</span></button>
+  <button class="intel-filter" onclick="filterIntel('TechTarget',this)">TechTarget <span class="filter-count" id="fc-TechTarget">1</span></button>
+</div>
+
+<div style="overflow-x:auto;border:1px solid var(--border2);border-radius:12px;">
+<table class="intel-table" id="intelTable">
+<thead>
+<tr>
+  <th style="width:30px"></th>
+  <th>Date</th>
+  <th>Competitor</th>
+  <th>Headline</th>
+  <th>Priority</th>
+  <th>Theme</th>
+  <th>Route To</th>
+</tr>
+</thead>
+<tbody id="intelBody">
+
+<tr class="intel-row" data-intel-comp="6Sense" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">▶</button></td>
+  <td style="white-space:nowrap">2026-02-20</td>
+  <td><span class="comp-tag c6sense">6Sense</span></td>
+  <td><span class="headline-text">[EXAMPLE] 6Sense Launches RevvyAI Conversational Assistant</span><div class="intel-snippet">6Sense announces RevvyAI, a conversational AI assistant for revenue teams, enabling natural language queries across the platform.</div></td>
+  <td><span class="priority-badge critical">Critical · 3.0</span></td>
+  <td><span class="theme-tag">Product/Feature</span></td>
+  <td><span class="route-tag">Product + Leadership</span></td>
+</tr>
+<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Direct feature overlap with conversational AI capabilities. Assess positioning response and feature gap analysis.</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">3.0 / 3.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">RSS / Blog</span></div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv"><a href="https://6sense.com/blog/revvyai" target="_blank" class="headline-link">6sense.com/blog/revvyai</a></div></div>
+  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">3.0</div></div>
+</div></td></tr>
+
+<tr class="intel-row" data-intel-comp="ZoomInfo" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">▶</button></td>
+  <td style="white-space:nowrap">2026-02-21</td>
+  <td><span class="comp-tag czoominfo">ZoomInfo</span></td>
+  <td><span class="headline-text">ZoomInfo Expands Product Offerings with AI and New Features</span><div class="intel-snippet">ZoomInfo has significantly enhanced its product line, launching features like ZoomInfo Copilot, an AI assistant, and expanding its intent data offerings.</div></td>
+  <td><span class="priority-badge medium">Medium · 2.3</span></td>
+  <td><span class="theme-tag">Feature Update</span></td>
+  <td><span class="route-tag">Product/Advisory</span></td>
+</tr>
+<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor ZoomInfo's advancements in AI and product features closely.</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">2.0 / 2.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">2.3</div></div>
+</div></td></tr>
+
+<tr class="intel-row" data-intel-comp="6Sense" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">▶</button></td>
+  <td style="white-space:nowrap">2026-02-12</td>
+  <td><span class="comp-tag c6sense">6Sense</span></td>
+  <td><span class="headline-text">6Sense humor festival: an unexpected turn</span><div class="intel-snippet">A humorous event featuring a festival themed around the concept of '6th sense' has emerged in Poland, potentially affecting 6Sense's brand perception.</div></td>
+  <td><span class="priority-badge low">Low · 1.0</span></td>
+  <td><span class="theme-tag">Other</span></td>
+  <td><span class="route-tag">Monitor Only</span></td>
+</tr>
+<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Keep an eye on potential brand perception issues for 6Sense.</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">1.0 / 1.0 / 1.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">1.0</div></div>
+</div></td></tr>
+
+<tr class="intel-row" data-intel-comp="ZoomInfo" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">▶</button></td>
+  <td style="white-space:nowrap">2026-02-21</td>
+  <td><span class="comp-tag czoominfo">ZoomInfo</span></td>
+  <td><span class="headline-text">ZoomInfo Expands Offerings with AI and Intent Data Enhancements</span><div class="intel-snippet">ZoomInfo has recently launched several key features including an AI assistant, ZoomInfo Copilot, and enhanced intent data capabilities to strengthen its competitive position.</div></td>
+  <td><span class="priority-badge high">High · 2.3</span></td>
+  <td><span class="theme-tag">Feature Update</span></td>
+  <td><span class="route-tag">Product/Advisory</span></td>
+</tr>
+<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor ZoomInfo's new AI features and pricing strategy closely.</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">2.0 / 2.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">2.3</div></div>
+</div></td></tr>
+
+<tr class="intel-row" data-intel-comp="Demandbase" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">▶</button></td>
+  <td style="white-space:nowrap">—</td>
+  <td><span class="comp-tag cdemandbase">Demandbase</span></td>
+  <td><span class="headline-text">Demandbase launches AI-powered "Smarter GTM" platform</span><div class="intel-snippet">Demandbase has introduced a unified go-to-market platform, enhancing their position in the competitive ABM landscape.</div></td>
+  <td><span class="priority-badge critical">Critical · 3.0</span></td>
+  <td><span class="theme-tag">Product Launch</span></td>
+  <td><span class="route-tag">Product/Advisory</span></td>
+</tr>
+<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor Demandbase's new offerings for strategic insights.</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">3.0 / 3.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">3.0</div></div>
+</div></td></tr>
+
+<tr class="intel-row" data-intel-comp="TechTarget" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">▶</button></td>
+  <td style="white-space:nowrap">—</td>
+  <td><span class="comp-tag ctechtarget">TechTarget</span></td>
+  <td><span class="headline-text">TechTarget Merges with Informa Tech for Enhanced Positioning</span><div class="intel-snippet">TechTarget has announced its merger with Informa Tech, which may shift dynamics in the ABM and marketing technology landscape.</div></td>
+  <td><span class="priority-badge critical">Critical · 2.7</span></td>
+  <td><span class="theme-tag">Acquisition</span></td>
+  <td><span class="route-tag">Marketing</span></td>
+</tr>
+<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor TechTarget's merger effects on market positioning.</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">2.0 / 3.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">Merger announcement</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">2.7</div></div>
+</div></td></tr>
+
+</tbody>
+</table>
+</div>
+</div>
+
+<div class="competitor-data" id="comp-6sense">
+<div class="view visible" id="6sense-profile">
+  <div class="section">
+    <div class="section-head"><span class="icon">🏢</span><h2>Company Profile</h2><span class="freq">Updated quarterly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">HQ &amp; Founded <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="HQ &amp; Founded">San Francisco, CA<br>Founded 2013<br>Private</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Funding &amp; Valuation <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Funding &amp; Valuation">$426-526M raised<br>Series F $100M (Jun 2023)<br>~$5.2B valuation</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Employee Count &amp; Growth <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Employee Count &amp; Growth">~1,564 (Jan 2026) · ↑40% YoY</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Revenue Estimate <span class="conf low"><span class="conf-dot"></span>Low</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Revenue Estimate">$200M+ ARR (est.) · ↑~40% YoY</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Key Leadership <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Key Leadership">CEO: Chris Ball (<span class="warn">NEW</span> Sept 2025, ex-Instructure)<br>Chairman: Jason Zintak<br>CSO: Tim O&#x27;Neil (<span class="warn">NEW</span>)<br>COO: Amir Ravandoust (<span class="warn">NEW</span>)<br>CDO: Raj Gupta (<span class="warn">NEW</span>)</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="6sense-product">
+  <div class="section">
+    <div class="section-head"><span class="icon">🎯</span><h2>Product &amp; Positioning</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card span2">
+  <div class="card-label">Core Platform <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Core Platform">Revenue AI Platform: 6AI™ predictive engine, Signalverse™ intent data, Intelligent Workflows, CTV ads, AI Email agents, web deanonymization, RevvyAI™</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Claimed Differentiators <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Claimed Differentiators">Predictive buying-stage AI (only platform)<br>Signalverse co-op data network<br>Full-funnel orchestration<br>Revenue AI positioning<br>CTV advertising</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Target ICP <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Target ICP">Enterprise B2B ($100M+ ARR)<br>Longer sales cycles<br>CMO, VP Demand Gen, RevOps, CRO<br>Tech, SaaS, Financial Services</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Pricing Model <span class="conf low"><span class="conf-dot"></span>Low</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Pricing Model">Custom enterprise<br>$55K-$300K/yr<br>No published tiers<br>Quote-based<br>Known for pricing opacity</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Recent Product Launches <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Recent Product Launches">RevvyAI™ (Nov 2025)<br>CTV Advertising<br>AI Email Agents<br>Keyword Intelligence enhancements</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Integration Ecosystem <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Integration Ecosystem">118 partners (90 tech + 28 agency)<br>Salesforce, HubSpot, Marketo, Outreach, Salesloft, Drift, Gong<br>2X = 2025 Agency Partner of Year</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="6sense-market">
+  <div class="section">
+    <div class="section-head"><span class="icon">⭐</span><h2>Market Presence</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">G2 Score &amp; Momentum <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="G2 Score &amp; Momentum">4.3/5<br>1,200+ reviews<br>95% support satisfaction<br>Leader in ABM, Intent Data</div>
+</div>
+<div class="data-card">
+  <div class="card-label">G2 Sentiment Themes <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="G2 Sentiment Themes"><strong class="pos">PROS:</strong> Predictive accuracy, intent data quality, support (95%) · <strong class="neg">CONS:</strong> UI/UX rated 5/10, pricing opacity 5/10, steep learning curve, complex implementation</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Analyst Coverage <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Analyst Coverage">Gartner MQ: Leader (5th yr) — #1 Ability to Execute · Forrester Wave: Leader — Revenue Marketing 2026 + Intent Data 2025</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Customer Logos <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Customer Logos">Zendesk, Sprout Social, Everbridge, Flexera, Trend Micro, Fivetran, Cognism, PTC, Samsara, Qualtrics</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Press &amp; Media Mentions <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Press &amp; Media Mentions">Breakthrough Conference (Nov 2025, 1,300+ attendees)<br>RevvyAI launch (Nov 2025)<br>CEO transition (Sept 2025)<br>Inspire UK (EMEA expansion)</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="6sense-gtm">
+  <div class="section">
+    <div class="section-head"><span class="icon">📣</span><h2>Go-to-Market</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Messaging Pillars <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Messaging Pillars">&quot;Revenue AI&quot; — evolved beyond ABM<br>&quot;From interested to in-market&quot;<br>Predictive intelligence + full-funnel orchestration<br>Data-driven revenue</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Content Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Content Strategy">Blog uses own intent data for topics<br>Educational ABM/RevOps<br>Webinar series<br>ROI calculators, benchmark reports, playbooks</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Event Presence <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Event Presence">Breakthrough Conference — 1,300+ attendees (Nov 2025)<br>Breakthrough 2026 planned Nov 2-5 Las Vegas<br>Inspire UK (EMEA)<br>Forrester B2B Summit, SaaStr, Dreamforce</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Partnership Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Partnership Strategy">118 partners (90 tech + 28 agency)<br>2X = 2025 Agency Partner of Year<br>Strong Salesforce ecosystem<br>Growing channel/reseller program</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="6sense-talent">
+  <div class="section">
+    <div class="section-head"><span class="icon">📡</span><h2>Talent Signals</h2><span class="freq">Updated weekly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Open Roles by Dept <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Open Roles by Dept">18-22 open positions<br>Focus: Enterprise Sales, Engineering (AI/Data), Customer Success<br>Selective hiring</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Key Hires &amp; Departures <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Key Hires &amp; Departures"><span class="warn">⚠️</span> <span class="warn">NEW</span> CEO Chris Ball (Sept 2025) + <span class="warn">NEW</span> CSO Tim O&#x27;Neil + <span class="warn">NEW</span> COO Amir Ravandoust + <span class="warn">NEW</span> CDO Raj Gupta · Jason Zintak → Chairman</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Hiring Velocity <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Hiring Velocity">Accelerating but selective<br>Focus on leadership + specialized AI/data roles<br>Operational maturity phase vs. hypergrowth</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Tech Stack Signals <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Tech Stack Signals">Job posts emphasize ML/AI, Python, data engineering<br>AWS primary<br>Heavy AI investment signals continued predictive differentiation</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="6sense-battlecard">
+  <div class="section">
+    <div class="section-head"><span class="icon">⚔️</span><h2>Sales Battlecard</h2><span class="freq">Updated continuously</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Their Strengths (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Their Strengths (in deals)">Best-in-class predictive buying-stage model<br>Massive Signalverse intent co-op<br>Strong analyst positioning (Gartner #1 Execute)<br>95% support satisfaction<br>CTV ads unique</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Their Weaknesses (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Their Weaknesses (in deals)">UI/UX rated 5/10<br>Pricing opacity ($55K-$300K)<br>CEO transition + 3 new C-suite = instability<br>Steep implementation<br>Enterprise-only ICP<br>Learning curve</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Landmine Questions <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Landmine Questions">&quot;How long did implementation take?&quot; (exposes steep learning curve)<br>&quot;Walk me through pricing tiers?&quot; (exposes opacity)<br>&quot;Noticed leadership changes?&quot; (CEO + 3 C-suite turnover)<br>&quot;How intuitive is the day-to-day interface?&quot; (UI/UX 5/10)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Counter-Positioning Script <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="6sense" data-field="Counter-Positioning Script">6Sense has strong predictive AI — we respect that. Where customers come to us: implementation is 3-6mo before value, and their pricing model makes total cost hard to predict. We&#x27;re transparent on both. Worth asking them about implementation timelines and total cost of ownership.</div>
+</div></div>
+  </div>
+</div>
+</div>
+
+<div class="competitor-data" id="comp-demandbase" style="display:none">
+<div class="view visible" id="demandbase-profile">
+  <div class="section">
+    <div class="section-head"><span class="icon">🏢</span><h2>Company Profile</h2><span class="freq">Updated quarterly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">HQ &amp; Founded <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="HQ &amp; Founded">San Francisco, CA<br>Founded 2006<br>Private<br>Profitable (2nd yr)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Funding &amp; Valuation <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Funding &amp; Valuation">$429M raised<br>Series F $150M<br>$1.2B valuation<br>$175M debt (Feb 2023)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Employee Count &amp; Growth <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Employee Count &amp; Growth">~1,028 (Dec 2025)<br>↑11% YoY<br>Some eng layoffs 2025</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Revenue Estimate <span class="conf low"><span class="conf-dot"></span>Low</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Revenue Estimate">$207M-$750M (wide range)<br>Double-digit growth<br>Record EBITDA</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Key Leadership <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Key Leadership">CEO: Gabe Rogol (promoted internally)<br>Founder/CSO: Chris Golec<br>CRO: Allison Metcalfe<br>CMO: Kelly Hopping (<span class="warn">NEW</span> 2023)<br>CCO + VP CS departed Jun 2025</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="demandbase-product">
+  <div class="section">
+    <div class="section-head"><span class="icon">🎯</span><h2>Product &amp; Positioning</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card span2">
+  <div class="card-label">Core Platform <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Core Platform">Demandbase One: ABX orchestration, Programmatic Advertising (Display, LinkedIn, FB, Google, YouTube, Reddit), Sales Intelligence, Data enrichment, Agentbase AI agents</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Claimed Differentiators <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Claimed Differentiators">Multi-signal fusion (1st + 3rd party)<br>Advertising precision<br>Data enrichment depth<br>Account hierarchies<br>GTM platform not point solution</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Target ICP <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Target ICP">Mid-market to Enterprise ($1B+ revenue)<br>VP/Dir Marketing, CRO, MOps<br>Account tiering by LTV<br>ICPaaS offering</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Pricing Model <span class="conf low"><span class="conf-dot"></span>Low</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Pricing Model">Platform fee + per-user<br>~200 emp: $18K-$32K/yr<br>~1K emp: $43K-$61K/yr<br>Enterprise: $70K-$300K+<br>Modular purchasing</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Recent Product Launches <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Recent Product Launches">Agentbase AI agents (Mar 2025)<br>Marketplace + Dev Portal 110+ integrations (Apr 2025)<br>Reddit Ads (Nov 2025)<br>Person-based Intent + Slack Alerts</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Integration Ecosystem <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Integration Ecosystem">132 partners (84 tech + 48 channel)<br>110+ Marketplace integrations<br>Dev Portal<br>Salesforce, HubSpot, Marketo, Adobe, LinkedIn, Reddit, Google, Workato</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="demandbase-market">
+  <div class="section">
+    <div class="section-head"><span class="icon">⭐</span><h2>Market Presence</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">G2 Score &amp; Momentum <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="G2 Score &amp; Momentum">4.2/5<br>Leader in 38 Winter 2025 Reports (11 categories)<br>Easiest to Use, Most Likely to Recommend badges</div>
+</div>
+<div class="data-card">
+  <div class="card-label">G2 Sentiment Themes <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="G2 Sentiment Themes"><strong class="pos">PROS:</strong> Robust analytics, targeting precision, AI capabilities, support · <strong class="neg">CONS:</strong> Higher cost, steep learning curve, implementation challenges, data accuracy weaker vs ZoomInfo</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Analyst Coverage <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Analyst Coverage">Gartner MQ: Leader (5th yr) — #1 Completeness of Vision<br>Gartner Critical Capabilities: #1 all 3 use cases<br>Forrester: Leader — Revenue Marketing Q1 2026 + Intent Data Q1 2025</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Customer Logos <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Customer Logos">400+ named / 2,800+ total<br>Accenture, Adobe, DocuSign, GE, Salesforce, IBM, NetApp, SAP Concur<br>58-66 case studies</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Press &amp; Media Mentions <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Press &amp; Media Mentions">Agentbase launch (Mar 2025)<br>Marketplace + Dev Portal (Apr 2025)<br>Gartner MQ Leader<br>Forrester Wave Leader<br>Fortune Best Places to Work</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="demandbase-gtm">
+  <div class="section">
+    <div class="section-head"><span class="icon">📣</span><h2>Go-to-Market</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Messaging Pillars <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Messaging Pillars">&quot;Compress the B2B sales cycle&quot;<br>Connected account data, AI orchestration, real-time intent<br>&quot;GTM platform, not a point solution&quot;<br>Account-centric vs. lead-centric</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Content Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Content Strategy">Blog, eBooks, webinars, case studies, podcasts, playbooks, videos<br>ABM strategy, intent-based marketing, AI in GTM<br>Journey-based distribution</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Event Presence <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Event Presence">ABM Innovation Summit — 6th annual, 1,000+ attendees<br>ABM Innovation Tour (virtual)<br>Revenue on the Rocks (quarterly)<br>Forrester B2B Summit sponsor</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Partnership Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Partnership Strategy">132 partners (84 tech + 48 channel)<br>40+ certified agencies (2-tier)<br>Intelligent Demand = first Gold-Certified<br>Developer Portal<br>Co-marketing + revenue sharing</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="demandbase-talent">
+  <div class="section">
+    <div class="section-head"><span class="icon">📡</span><h2>Talent Signals</h2><span class="freq">Updated weekly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Open Roles by Dept <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Open Roles by Dept">Active across: Product Management, Product Marketing, Engineering, Sales (Enterprise AEs, SDRs), Support/Services</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Key Hires &amp; Departures <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Key Hires &amp; Departures">Kelly Hopping → CMO (replaced Jon Miller → Chief Evangelist)<br>Michael Wilczak → Chief Strategy<br><span class="warn">⚠️</span> CCO + VP CS departed Jun 2025<br>Eng layoffs</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Hiring Velocity <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Hiring Velocity">Growth with restructuring (+11% YoY net)<br>Expanding: Austin, Europe, India, UK, Germany, Japan<br>Efficiency focus (2nd yr profitable)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Tech Stack Signals <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Tech Stack Signals">Data lakehouse: Apache Iceberg + StarRocks<br>Agentbase AI agents<br>Developer Portal = API-first ecosystem strategy</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="demandbase-battlecard">
+  <div class="section">
+    <div class="section-head"><span class="icon">⚔️</span><h2>Sales Battlecard</h2><span class="freq">Updated continuously</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Their Strengths (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Their Strengths (in deals)">Longest-tenured ABM platform (est. 2006)<br>Gartner #1 Completeness of Vision + #1 all Critical Capabilities<br>Strong advertising<br>Profitable<br>2,800+ customers<br>132-partner ecosystem</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Their Weaknesses (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Their Weaknesses (in deals)">Data accuracy weaker vs ZoomInfo<br>Steep learning curve<br>Premium pricing ($70K-$300K+)<br>CCO + VP CS departed Jun 2025<br>Engineering layoffs<br>Implementation complexity</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Landmine Questions <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Landmine Questions">&quot;How accurate has their data been vs. other sources?&quot; (weaker vs ZoomInfo)<br>&quot;Recent CS team changes?&quot; (CCO + VP CS departed)<br>&quot;How quickly did you see ROI?&quot; (steep implementation)<br>&quot;Using all 4 modules? How has pricing scaled?&quot; (modular cost spiral)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Counter-Positioning Script <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="demandbase" data-field="Counter-Positioning Script">Demandbase invented the ABM category. Where teams come to us: data accuracy (analyst reports flag gaps vs. specialized providers) and time-to-value (G2 reviews cite steep learning curve). Ask them specifically about data quality benchmarks and implementation timelines.</div>
+</div></div>
+  </div>
+</div>
+</div>
+
+<div class="competitor-data" id="comp-zoominfo" style="display:none">
+<div class="view visible" id="zoominfo-profile">
+  <div class="section">
+    <div class="section-head"><span class="icon">🏢</span><h2>Company Profile</h2><span class="freq">Updated quarterly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">HQ &amp; Founded <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="HQ &amp; Founded">Vancouver, WA<br>Founded 2007<br>Public (NASDAQ: GTM)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Funding &amp; Valuation <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Funding &amp; Valuation">IPO Jun 2020 at $21<br>Market cap ~$3.5B<br>Ticker: GTM</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Employee Count &amp; Growth <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Employee Count &amp; Growth">~3,824 (Jul 2025) · 6% layoff Jun 2025 (~210 people)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Revenue Estimate <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Revenue Estimate">$1.25B FY2025 (actual)<br>↑3% YoY<br>38% adj operating margin</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Key Leadership <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Key Leadership">CEO: Henry Schuck (Founder, remains)<br>6% layoff Jun 2025<br>CFO filled 2025<br>Upmarket strategic pivot</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="zoominfo-product">
+  <div class="section">
+    <div class="section-head"><span class="icon">🎯</span><h2>Product &amp; Positioning</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card span2">
+  <div class="card-label">Core Platform <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Core Platform">MarketingOS (part of RevOS): Multi-channel campaign automation (display, email, SMS, LinkedIn, CTV), intent data, Account Fit Score, website chat, form enrichment, CoPilot AI</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Claimed Differentiators <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Claimed Differentiators">Unmatched B2B database (30M companies, 300+ attributes)<br>Integrated RevOS ecosystem<br>First-party intent<br>Native multi-channel<br>Contact-level intent<br>316% ROI (Forrester TEI)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Target ICP <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Target ICP">Mid-market to Enterprise ($100M+ revenue)<br>Upmarket focus (74% of business)<br>Sales, Marketing, Ops, Recruiting personas</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Pricing Model <span class="conf low"><span class="conf-dot"></span>Low</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Pricing Model">Credit-based<br>Professional ~$15K/yr<br>Advanced ~$25K/yr<br>Elite ~$40K/yr<br>Intent add-ons $9K-$40K/yr<br>API access ~$50K/yr</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Recent Product Launches <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Recent Product Launches">Company Data Cube update +1.8M companies (Jan 2026)<br>AI Agent plain-English queries<br>GTM Studio commercial launch<br>CoPilot enhancements<br>Multi-Path Workflows</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Integration Ecosystem <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Integration Ecosystem">179 partners (144 tech + 35 channel)<br>200+ App Marketplace<br>Salesforce, HubSpot, Marketo, Outreach<br>Salesloft expanded partnership<br>API access</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="zoominfo-market">
+  <div class="section">
+    <div class="section-head"><span class="icon">⭐</span><h2>Market Presence</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">G2 Score &amp; Momentum <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="G2 Score &amp; Momentum">150 #1 rankings G2 Spring 2025<br>254 Leader ratings<br>8,500+ 5-star reviews<br>Led Marketing Account Intel 18 of 20 quarters<br>Buyer&#x27;s Choice Award</div>
+</div>
+<div class="data-card">
+  <div class="card-label">G2 Sentiment Themes <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="G2 Sentiment Themes"><strong class="pos">PROS:</strong> Exceptional support, comprehensive database, data quality, workflow efficiency · <strong class="neg">CONS:</strong> Pricing complexity/credit confusion, US-focused data (APAC/EMEA gaps), steep learning curve, 4.7 G2 vs 1.6 Trustpilot gap</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Analyst Coverage <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Analyst Coverage">Gartner MQ: Leader (2 consecutive yrs)<br>Only Customers&#x27; Choice vendor (4.7/5)<br>Forrester Wave: Leader — Intent Data Q1 2025 (highest scores in 8 criteria)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Customer Logos <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Customer Logos">25,000+ companies worldwide<br>DemandCapture scales to 1K meetings/mo<br>316% ROI Forrester TEI study</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Press &amp; Media Mentions <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Press &amp; Media Mentions">Q4 2025 record revenue $1.25B (Feb 2026)<br>Forrester TEI 316% ROI study (Dec 2025)<br>150 G2 #1 rankings<br>GTM 25 conference series</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="zoominfo-gtm">
+  <div class="section">
+    <div class="section-head"><span class="icon">📣</span><h2>Go-to-Market</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Messaging Pillars <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Messaging Pillars">&quot;RevOS — Revenue Operating System&quot;<br>Data-driven GTM (300+ attributes, 30M companies)<br>AI-native (CoPilot)<br>Signal-based selling<br>316% ROI + 6-month payback</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Content Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Content Strategy">Pipeline.zoominfo.com resource hub<br>Blog, whitepapers, webinars, university courses<br>Comparative analyses vs. competitors<br>CoPilot education</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Event Presence <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Event Presence">GTM 25 conference — Virtual keynote + live events (NYC, Boston, Chicago, Austin, Dallas, SF, London)<br>Multiple investor conferences<br>CEO hosts events at Dreamforce</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Partnership Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Partnership Strategy">179 partners (144 tech + 35 channel)<br>Salesloft expanded partnership<br>5x5 Data partnership<br>Tiered certification<br>20% upfront commissions<br>Markaaz partnership (2026)</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="zoominfo-talent">
+  <div class="section">
+    <div class="section-head"><span class="icon">📡</span><h2>Talent Signals</h2><span class="freq">Updated weekly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Open Roles by Dept <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Open Roles by Dept">49-53 open positions · Focus: SDR/Senior SDR (Enterprise), Principal Engineers (ML/distributed systems), Product, RevOps</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Key Hires &amp; Departures <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Key Hires &amp; Departures">Henry Schuck remains CEO<br>CFO filled 2025<br>6% layoff Jun 2025 (~210 people)<br>Net: 319 hires vs 390 departures</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Hiring Velocity <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Hiring Velocity">Selective post-layoff<br>Priority: AI/ML engineering, Enterprise sales, Product innovation<br>Upmarket shift reducing proportional sales headcount</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Tech Stack Signals <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Tech Stack Signals">AI/ML and distributed systems priority<br>CoPilot now 20%+ of total ACV<br>RevOS unification across 4 products</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="zoominfo-battlecard">
+  <div class="section">
+    <div class="section-head"><span class="icon">⚔️</span><h2>Sales Battlecard</h2><span class="freq">Updated continuously</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Their Strengths (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Their Strengths (in deals)">Largest B2B database (30M companies)<br>Integrated RevOS (Marketing+Sales+Ops+Recruiting)<br>First-party intent<br>Forrester TEI: 316% ROI<br>Contact-level intent<br>Public company stability</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Their Weaknesses (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Their Weaknesses (in deals)">Pricing complexity (credit system confusion)<br>US data bias (APAC/EMEA gaps)<br>SMB dissatisfaction (4.7 G2 vs 1.6 Trustpilot)<br>Contract/renewal practices<br>Learning curve<br>6% layoff</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Landmine Questions <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Landmine Questions">&quot;Can you explain their credit system and predict total cost?&quot; (credit confusion)<br>&quot;How accurate is their data outside North America?&quot; (APAC/EMEA gaps)<br>&quot;What was your renewal experience like?&quot; (negative renewal experiences)<br>&quot;How do G2 vs Trustpilot reviews compare?&quot; (4.7 vs 1.6)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Counter-Positioning Script <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="zoominfo" data-field="Counter-Positioning Script">ZoomInfo has the largest B2B database — that&#x27;s real. Where we see teams come to us: their credit system makes cost unpredictable, and their data outside North America has gaps. If global accuracy and pricing transparency matter to your team, ask them about international data quality and total cost of ownership.</div>
+</div></div>
+  </div>
+</div>
+</div>
+
+<div class="competitor-data" id="comp-g2" style="display:none">
+<div class="view visible" id="g2-profile">
+  <div class="section">
+    <div class="section-head"><span class="icon">🏢</span><h2>Company Profile</h2><span class="freq">Updated quarterly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">HQ &amp; Founded <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="HQ &amp; Founded">Chicago, IL<br>Founded 2012<br>Private ($1.1B valuation)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Funding &amp; Valuation <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Funding &amp; Valuation">$258M raised<br>Series D $157M (Jun 2021)<br>$1.1B+ valuation</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Employee Count &amp; Growth <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Employee Count &amp; Growth">~1,092 (2024)<br>Inc. 5000 honoree<br>No layoffs reported</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Revenue Estimate <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Revenue Estimate">$162.9M (2024 actual) · ↑44.4% YoY</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Key Leadership <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Key Leadership">CEO: Godard Abel (Co-Founder)<br>CRO: Mike Weir<br>CPO: Sara Rossio<br>CMO: Amanda Bird Malko (<span class="warn">NEW</span> 2024, ex-Mailchimp)</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="g2-product">
+  <div class="section">
+    <div class="section-head"><span class="icon">🎯</span><h2>Product &amp; Positioning</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card span2">
+  <div class="card-label">Core Platform <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Core Platform">Software Marketplace (140K+ products, 650K+ reviews) + Buyer Intent Data (profile/pricing/category/compare signals) + Marketing Solutions + G2 Clicks (pay-per-click)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Claimed Differentiators <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Claimed Differentiators">80M+ annual buyers<br>Authentic peer reviews (650K+)<br>AI Visibility Dashboard<br>Marketplace scale<br>Capterra/SoftwareAdvice/GetApp acquisition (Jan 2026)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Target ICP <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Target ICP">B2B SaaS companies ($10M-$1B+ ARR)<br>Marketing leaders, Sales leaders, Product teams<br>60%+ of Forbes Cloud 100</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Pricing Model <span class="conf low"><span class="conf-dot"></span>Low</span></div>
+  <div class="card-value" data-comp="g2" data-field="Pricing Model">Core: ~$15K/yr list ($34K-$36K actual)<br>Premium w/ Intent + Reviews: ~$87K/yr<br>Small vendors: ~$10K/yr<br>G2 Clicks: pay-per-click (new)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Recent Product Launches <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Recent Product Launches">AI Visibility Dashboard (Sep 2025)<br>Profound partnership for AEO<br>G2 Clicks pay-per-click<br>Capterra/SoftwareAdvice/GetApp acquisition (Jan 2026)<br>Review Decay Algorithm update</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Integration Ecosystem <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Integration Ecosystem">134 partners (101 tech + 33 channel)<br>Salesforce, HubSpot, Marketo, 6sense, Demandbase, Outreach, Salesloft, Gong, LinkedIn<br>Self-serve Dev Portal</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="g2-market">
+  <div class="section">
+    <div class="section-head"><span class="icon">⭐</span><h2>Market Presence</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">G2 Score &amp; Momentum <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="G2 Score &amp; Momentum">N/A — G2 IS the review platform<br>140K+ product pages<br>650K+ reviews<br>80M+ annual buyers</div>
+</div>
+<div class="data-card">
+  <div class="card-label">G2 Sentiment Themes <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="G2 Sentiment Themes">PROS (as vendor platform): Authentic reviews, buyer reach, intent signals · <strong class="neg">CONS:</strong> Narrow intent (G2.com only), high cost for SMB vendors, review gaming concerns</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Analyst Coverage <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Analyst Coverage">Complementary to Gartner/Forrester (crowdsourced vs. analyst)<br>No dedicated MQ coverage<br>Increasingly integrated into analyst evaluations</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Customer Logos <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Customer Logos">60%+ of Forbes Cloud 100<br>Fortune 500 inclusion<br>HubSpot case study (25% lower CPL)</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Press &amp; Media Mentions <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Press &amp; Media Mentions">Capterra/SoftwareAdvice/GetApp acquisition (Jan 2026)<br>Profound AI partnership (Sep 2025)<br>Reddit partnership (Oct 2025)<br>2025 Best Software Awards</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="g2-gtm">
+  <div class="section">
+    <div class="section-head"><span class="icon">📣</span><h2>Go-to-Market</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Messaging Pillars <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Messaging Pillars">&quot;World&#x27;s largest software marketplace&quot;<br>Authentic buyer voices<br>Trust &amp; transparency<br>AI-powered discovery<br>Data-driven decisions</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Content Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Content Strategy">Grid Reports (quarterly)<br>Comparison Reports<br>Best Software Awards (44+ categories)<br>Programmatic SEO (6.6M+ monthly organic visits from 140K+ product pages)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Event Presence <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Event Presence">G2 Best Software Awards (annual, high-profile)<br>Partner events via ecosystem<br>No major dedicated user conference identified</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Partnership Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Partnership Strategy">134 partners (101 tech + 33 channel)<br>Salesforce, HubSpot, LinkedIn strategic investors<br>Profound AI partnership<br>Reddit partnership<br>Ecosystem-Led Growth program</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="g2-talent">
+  <div class="section">
+    <div class="section-head"><span class="icon">📡</span><h2>Talent Signals</h2><span class="freq">Updated weekly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Open Roles by Dept <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Open Roles by Dept">6+ open positions<br>Sales, Marketing, Product, Engineering<br>Scaling to support AI roadmap</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Key Hires &amp; Departures <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Key Hires &amp; Departures">Amanda Bird Malko → CMO (2024, ex-Mailchimp) · No major C-suite departures reported</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Hiring Velocity <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Hiring Velocity">Strong growth signal (44.4% YoY revenue)<br>No layoffs<br>Scaling engineering for AI<br>Inc. 5000 honoree</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Tech Stack Signals <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Tech Stack Signals">AI-first product roadmap<br>Profound partnership for AEO<br>Programmatic SEO infrastructure<br>Self-serve developer portal</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="g2-battlecard">
+  <div class="section">
+    <div class="section-head"><span class="icon">⚔️</span><h2>Sales Battlecard</h2><span class="freq">Updated continuously</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Their Strengths (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Their Strengths (in deals)">80M+ annual buyers on platform<br>Authentic peer reviews influence buying decisions<br>Intent signals from actual product research<br>Capterra/SA/GetApp acquisition = 3x intent signals</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Their Weaknesses (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Their Weaknesses (in deals)">Narrow intent (G2.com activity only, not broader journey)<br>High cost for SMB vendors<br>Recent traffic decline (AI overview impacts)<br>Integration complexity<br>Review gaming concerns</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Landmine Questions <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="g2" data-field="Landmine Questions">&quot;How do you use G2 intent data alongside your other intent sources?&quot; (narrow G2-only signal)<br>&quot;What ROI have you seen from your G2 investment?&quot; (hard to attribute)<br>&quot;How do they handle review authenticity?&quot; (gaming concerns)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Counter-Positioning Script <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="g2" data-field="Counter-Positioning Script">G2 has incredible buyer reach — 80M+ annual visitors. The question is whether G2-only intent signals give you enough of the buying journey picture. We provide broader intent coverage across the full research journey, not just one marketplace.</div>
+</div></div>
+  </div>
+</div>
+</div>
+
+<div class="competitor-data" id="comp-techtarget" style="display:none">
+<div class="view visible" id="techtarget-profile">
+  <div class="section">
+    <div class="section-head"><span class="icon">🏢</span><h2>Company Profile</h2><span class="freq">Updated quarterly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">HQ &amp; Founded <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="HQ &amp; Founded">Newton, MA<br>Founded 1999<br>Public (NASDAQ: TTGT)<br>Merged w/ Informa Dec 2024</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Funding &amp; Valuation <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Funding &amp; Valuation">$115M raised<br>Informa owns 57%, legacy shareholders 43%<br>Market cap ~$356M</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Employee Count &amp; Growth <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Employee Count &amp; Growth">~1,500 (Oct 2025)<br>10% layoff Jul 2025<br>Post-merger restructuring</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Revenue Estimate <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Revenue Estimate">$285M reported 2024<br>$490M pro forma combined<br>Flat 2025 guidance</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Key Leadership <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Key Leadership">CEO: Gary Nugent (<span class="warn">NEW</span> Dec 2024)<br>Chairman: Gregory Strakosch (Founder)<br>President Rebecca Kitchens separated Jul 2025</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="techtarget-product">
+  <div class="section">
+    <div class="section-head"><span class="icon">🎯</span><h2>Product &amp; Positioning</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card span2">
+  <div class="card-label">Core Platform <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Core Platform">Priority Engine: First-party purchase intent at Market/Account/Buying Group/Prospect level<br>Content syndication (150+ tech websites)<br>Confirmed Projects<br>Market Monitor</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Claimed Differentiators <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Claimed Differentiators">Permissioned first-party audience (50M+ tech pros)<br>Confirmed Projects (verified via interviews)<br>AI-powered multi-level intent<br>Omdia analyst integration<br>150+ tech websites</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Target ICP <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Target ICP">Enterprise tech companies (vendors, SaaS, hardware)<br>VP Sales, VP Marketing, CRO<br>Mid-market to Enterprise<br>North America + UK + APAC</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Pricing Model <span class="conf low"><span class="conf-dot"></span>Low</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Pricing Model">Subscription SaaS + Enterprise retainer + Data licensing<br>Custom quotes<br>Mid-range pricing<br>~17% typical discount on new purchases</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Recent Product Launches <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Recent Product Launches">Priority Engine Demand - buying group centric (Oct 2024)<br>Market Monitor - strategic intel (Jul 2024)<br>Salesloft partnership (Jun 2025)<br>Unified portal planned Fall 2025</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Integration Ecosystem <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Integration Ecosystem">Salesforce, HubSpot, Oracle Eloqua, Integrate<br>6sense strategic partnership<br>Salesloft partnership (Jun 2025)<br>Weekly account intent feeds to CRM</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="techtarget-market">
+  <div class="section">
+    <div class="section-head"><span class="icon">⭐</span><h2>Market Presence</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">G2 Score &amp; Momentum <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="G2 Score &amp; Momentum">N/A — Not a primary G2 category · Intent data reviewed via Priority Engine</div>
+</div>
+<div class="data-card">
+  <div class="card-label">G2 Sentiment Themes <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="G2 Sentiment Themes"><strong class="pos">PROS:</strong> First-party intent quality, verified projects, tech-specific depth · <strong class="neg">CONS:</strong> Tech-vertical only, limited self-serve, integration complexity</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Analyst Coverage <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Analyst Coverage">Gartner: Established coverage<br>Forrester: Established coverage<br>Omdia analyst network embedded post-merger<br>Buy consensus from 4 analysts</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Customer Logos <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Customer Logos">7,500+ global customers<br>Cisco, Hitachi Vantara<br>Enterprise tech vendors</div>
+</div>
+<div class="data-card span2">
+  <div class="card-label">Press &amp; Media Mentions <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Press &amp; Media Mentions">Informa merger completed (Dec 2024)<br>10% layoff + President departure (Jul 2025)<br>Priority Engine Demand launch (Oct 2024)<br>Salesloft partnership (Jun 2025)</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="techtarget-gtm">
+  <div class="section">
+    <div class="section-head"><span class="icon">📣</span><h2>Go-to-Market</h2><span class="freq">Updated monthly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Messaging Pillars <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Messaging Pillars">&quot;Purchase intent-driven growth&quot;<br>First-party data advantage<br>Buying group intelligence<br>AI-powered intent<br>Data + Content + Advisory integrated</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Content Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Content Strategy">150+ tech-specific websites<br>Editorial content, research reports<br>BrightTALK webinars<br>Omdia analyst insights<br>White papers &amp; e-books</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Event Presence <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Event Presence">Partner Marketing Visionaries Summit — 3rd annual (Mar 2025)<br>BrightTALK webinars<br>Industry conferences<br>Customer Advisory Boards</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Partnership Strategy <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Partnership Strategy">Salesloft partnership (Jun 2025)<br>6sense integration<br>750+ partner programs delivered historically<br>Channel focus on ISVs, SIs, VARs</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="techtarget-talent">
+  <div class="section">
+    <div class="section-head"><span class="icon">📡</span><h2>Talent Signals</h2><span class="freq">Updated weekly</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Open Roles by Dept <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Open Roles by Dept">18-22 open positions<br>Focus: SDR, Enterprise Sales, Engineering, Operations<br>HQ concentration in Newton MA</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Key Hires &amp; Departures <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Key Hires &amp; Departures">Gary Nugent → CEO (Dec 2024)<br>Rebecca Kitchens (President) separated Jul 2025<br>10% layoff Jul 2025<br>Mike Cotoia (prev CEO) departed</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Hiring Velocity <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Hiring Velocity">Post-reorganization hiring<br>Selective in strategic areas<br>SDR expansion priority<br>Integration complexity from Informa merger</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Tech Stack Signals <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Tech Stack Signals">Priority Engine SaaS platform<br>Apache/enterprise tech stack<br>AI-powered intent analysis<br>Post-merger platform unification</div>
+</div></div>
+  </div>
+</div>
+<div class="view" id="techtarget-battlecard">
+  <div class="section">
+    <div class="section-head"><span class="icon">⚔️</span><h2>Sales Battlecard</h2><span class="freq">Updated continuously</span></div>
+    <div class="data-grid"><div class="data-card">
+  <div class="card-label">Their Strengths (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Their Strengths (in deals)">First-party intent from 50M+ tech pros<br>Confirmed Projects (verified)<br>150+ tech websites = unmatched reach<br>Omdia analyst integration<br>7,500+ customers</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Their Weaknesses (in deals) <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Their Weaknesses (in deals)">Tech-vertical only (not horizontal)<br>Flat revenue + $523M Q1 goodwill impairment<br>10% layoff + President departure<br>Integration challenges post-merger<br>Limited self-serve</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Landmine Questions <span class="conf med"><span class="conf-dot"></span>Med</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Landmine Questions">&quot;How has the Informa merger affected your experience?&quot; (integration disruption)<br>&quot;Are you seeing value beyond tech verticals?&quot; (tech-only)<br>&quot;How responsive has support been since the reorg?&quot; (layoff impact)</div>
+</div>
+<div class="data-card">
+  <div class="card-label">Counter-Positioning Script <span class="conf high"><span class="conf-dot"></span>High</span></div>
+  <div class="card-value" data-comp="techtarget" data-field="Counter-Positioning Script">TechTarget has deep tech-vertical intent data from verified research behavior. The gap is they&#x27;re tech-only and going through a major merger integration. If you need horizontal coverage or stability, ask them about non-tech verticals and post-merger service continuity.</div>
+</div></div>
+  </div>
+</div>
+</div>
+
+<div class="view" id="view-compare">
+<div class="section">
+<div class="section-head"><span class="icon">⚖️</span><h2>Side-by-Side Comparison</h2></div>
+<div style="overflow-x:auto">
+<table class="comp-table">
+<thead><tr><th style="width:150px">Field</th><th>6Sense</th><th>Demandbase</th><th>ZoomInfo MarketingOS</th><th>G2</th><th>TechTarget</th></tr></thead>
+<tbody><tr class="sr"><td colspan="6">COMPANY PROFILE</td></tr>
+<tr><td class="fl">Founded</td><td>2013 (13 years)</td><td>2006 (20 years)</td><td>2007 (IPO 2020)</td><td>2012</td><td>1999 (merged Informa 2024)</td></tr>
+<tr><td class="fl">Employees</td><td>~1,564 (↑40% YoY)</td><td>~1,028 (↑11% YoY)</td><td>~3,824 (6% layoff)</td><td>~1,092 (growing)</td><td>~1,500 (10% layoff)</td></tr>
+<tr><td class="fl">Funding / Valuation</td><td>$426-526M / ~$5.2B</td><td>$429M / $1.2B</td><td>Public / ~$3.5B mkt cap</td><td>$258M / $1.1B+</td><td>Public / ~$356M mkt cap</td></tr>
+<tr><td class="fl">Revenue</td><td>$200M+ ARR (↑40%)</td><td>$207M-$750M range</td><td>$1.25B actual (↑3%)</td><td>$162.9M (↑44.4%)</td><td>$285M ($490M combined)</td></tr>
+<tr><td class="fl">Profitability</td><td>Not confirmed</td><td><span class='pos'>2nd consecutive profitable year</span></td><td>38% adj operating margin</td><td>Not disclosed</td><td>Adj EBITDA target >$85M</td></tr>
+<tr><td class="fl">CEO Stability</td><td><span class='neg'>LOW — New CEO + 3 C-suite 2025</span></td><td>Stable (promoted internally)</td><td>Stable (Founder remains)</td><td>Stable (Co-Founder)</td><td><span class='warn'>NEW CEO Dec 2024 + President departed</span></td></tr>
+<tr class="sr"><td colspan="6">PRODUCT</td></tr>
+<tr><td class="fl">Platform Brand</td><td>Revenue AI Platform</td><td>Demandbase One</td><td>RevOS (MarketingOS)</td><td>Software Marketplace + Intent</td><td>Priority Engine</td></tr>
+<tr><td class="fl">Core Differentiator</td><td>Predictive buying-stage AI</td><td>Advertising precision + data</td><td>Database scale (30M cos)</td><td>80M+ buyer audience</td><td>First-party tech intent</td></tr>
+<tr><td class="fl">Key Innovation</td><td>RevvyAI (Nov 2025)</td><td>Agentbase AI (Mar 2025)</td><td>CoPilot AI + GTM Studio</td><td>AI Visibility Dashboard</td><td>Priority Engine Demand</td></tr>
+<tr><td class="fl">Pricing Range</td><td>$55K-$300K/yr (opaque)</td><td>$18K-$300K+/yr (modular)</td><td>$15K-$40K+/yr (credits)</td><td>$10K-$87K/yr (tiers)</td><td>Custom (mid-range)</td></tr>
+<tr><td class="fl">Partners</td><td>118 (90T+28A)</td><td>132 (84T+48C)</td><td>179 (144T+35C)</td><td>134 (101T+33C)</td><td>Limited (strategic)</td></tr>
+<tr class="sr"><td colspan="6">MARKET PRESENCE</td></tr>
+<tr><td class="fl">Gartner MQ</td><td>Leader — #1 Execute</td><td>Leader — #1 Vision</td><td>Leader — Customers' Choice</td><td>N/A (is the review platform)</td><td>Covered (not ABM MQ)</td></tr>
+<tr><td class="fl">Forrester Wave</td><td>Leader (RevMkt + Intent)</td><td>Leader (RevMkt + Intent)</td><td>Leader (Intent — #1 scores)</td><td>N/A</td><td>Covered (intent/media)</td></tr>
+<tr class="sr"><td colspan="6">VULNERABILITIES</td></tr>
+<tr><td class="fl">#1 Weakness</td><td><span class='neg'>UI/UX (5/10 on G2)</span></td><td><span class='neg'>Data accuracy vs ZoomInfo</span></td><td><span class='neg'>Pricing complexity (credits)</span></td><td><span class='neg'>Narrow intent (G2 only)</span></td><td><span class='neg'>Tech-vertical only</span></td></tr>
+<tr><td class="fl">#2 Weakness</td><td><span class='neg'>Leadership instability</span></td><td><span class='neg'>CS leadership vacuum</span></td><td><span class='neg'>US data bias</span></td><td><span class='neg'>Traffic decline (AI)</span></td><td><span class='neg'>Flat revenue + impairment</span></td></tr>
+<tr><td class="fl">#3 Weakness</td><td><span class='neg'>Pricing opacity</span></td><td><span class='neg'>Implementation complexity</span></td><td><span class='neg'>SMB dissatisfaction</span></td><td><span class='neg'>High vendor cost</span></td><td><span class='neg'>Merger integration risk</span></td></tr></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div class="view" id="view-routing">
+<div class="section">
+<div class="section-head"><span class="icon">🔔</span><h2>Routing & Alert Configuration</h2><span class="freq">Real-time</span></div>
+
+<div class="alert-config"><h4>🚨 Funding & Acquisition Alerts</h4>
+<div class="alert-detail"><strong>Monitors:</strong> All 5 tracked competitors</div>
+<div class="alert-detail"><strong>Sources:</strong> Google News Alerts, Crunchbase API, PR Newswire</div>
+<div class="alert-detail"><strong>Trigger:</strong> New funding round, acquisition, IPO filing, major partnership</div>
+<div class="alert-detail"><strong>Channel:</strong> #competitive-intel</div>
+<div class="alert-example">🚨 <b>6Sense</b> — "6Sense announces strategic partnership with [company]"<br>Source: PR Newswire · 5 min ago<br>→ Impact: [auto-generated context]</div></div>
+
+<div class="alert-config"><h4>👤 Executive Movement Alerts</h4>
+<div class="alert-detail"><strong>Monitors:</strong> VP+ level across all 5 competitors</div>
+<div class="alert-detail"><strong>Sources:</strong> LinkedIn (manual/weekly scan), Google News Alerts</div>
+<div class="alert-detail"><strong>Trigger:</strong> C-suite hire/departure, VP+ role change, board appointment</div>
+<div class="alert-detail"><strong>Channel:</strong> #competitive-intel</div>
+<div class="alert-example">👤 <b>TechTarget</b> — President Rebecca Kitchens separated Jul 2025<br>Source: LinkedIn · Weekly scan<br>→ Signal: Post-merger leadership restructuring — potential instability</div></div>
+
+<div class="alert-config"><h4>🚀 Product Launch Alerts</h4>
+<div class="alert-detail"><strong>Monitors:</strong> All 5 competitor blogs, press releases, product pages</div>
+<div class="alert-detail"><strong>Sources:</strong> RSS feeds, Google Alerts, competitor blog scrape</div>
+<div class="alert-detail"><strong>Trigger:</strong> New feature, product rebrand, major integration, pricing change</div>
+<div class="alert-detail"><strong>Channel:</strong> #competitive-intel + #competitive-product</div>
+<div class="alert-example">🚀 <b>G2</b> — "G2 completes Capterra/SoftwareAdvice/GetApp acquisition"<br>Source: Press · Jan 2026<br>→ Impact: 3x intent signal coverage — major competitive expansion</div></div>
+
+<div class="alert-config"><h4>⭐ G2 Review Spike Alerts</h4>
+<div class="alert-detail"><strong>Monitors:</strong> G2 profiles for all 5 competitors</div>
+<div class="alert-detail"><strong>Sources:</strong> G2 category pages (semi-automated monthly scrape)</div>
+<div class="alert-detail"><strong>Trigger:</strong> 5+ new reviews/week, rating change > 0.2, new negative theme emerging</div>
+<div class="alert-detail"><strong>Channel:</strong> #competitive-intel + #marketing</div>
+<div class="alert-example">⭐ <b>ZoomInfo</b> — Trustpilot: 1.6/5 vs G2: 4.7/5 gap widening<br>→ Opportunity: Target ZoomInfo customers with satisfaction messaging</div></div>
+
+<div class="alert-config"><h4>📋 Hiring Surge Alerts</h4>
+<div class="alert-detail"><strong>Monitors:</strong> LinkedIn Jobs, careers pages for all 5 competitors</div>
+<div class="alert-detail"><strong>Sources:</strong> LinkedIn Jobs API / weekly scrape, careers page monitoring</div>
+<div class="alert-detail"><strong>Trigger:</strong> 20%+ increase in open roles week-over-week, new department hiring</div>
+<div class="alert-detail"><strong>Channel:</strong> #competitive-intel + #competitive-deals</div>
+<div class="alert-example">📋 <b>ZoomInfo</b> — 49-53 open positions focused on Enterprise SDR + ML engineers<br>→ Signal: Upmarket push + AI investment acceleration</div></div>
+
+<div class="alert-config"><h4>🏆 Rep Intel Submissions</h4>
+<div class="alert-detail"><strong>Input:</strong> Slack form/workflow in #competitive-intel</div>
+<div class="alert-detail"><strong>Fields:</strong> Competitor, Intel type (pricing/feature/objection/win-loss), Details, Deal context</div>
+<div class="alert-detail"><strong>Output:</strong> Auto-tagged and routed to battlecard update queue</div>
+<div class="alert-detail"><strong>Channel:</strong> #competitive-deals</div>
+<div class="alert-example">🏆 <b>6Sense</b> — Intel from @rep: "Prospect quoted $180K/yr for 500 accounts.<br>Frustrated with 4-month implementation timeline."<br>→ Auto-tagged: Pricing + Implementation · Added to battlecard queue</div></div>
+
+</div></div>
+
+</div>
+</div>
+
+<script>
+var PASSWORD='b2bfusion2026';
+var SHEET_ID='1GaMTcclbNuadrzp2P8GF15mutmlgoN0GPuIlH6-58z0';
+var currentComp='6sense';
+var currentView='intelfeed';
+var viewNames=["intelfeed", "profile", "product", "market", "gtm", "talent", "battlecard", "compare", "routing"];
+var globalViews=['intelfeed','compare','routing'];
+var compIds=["6sense", "demandbase", "zoominfo", "g2", "techtarget"];
+
+function doLogin(){var pw=document.getElementById('loginPassword').value;if(pw===PASSWORD){document.getElementById('loginOverlay').style.display='none';document.getElementById('app').style.display='flex';}else{document.getElementById('loginError').style.display='block';}}
+
+function showView(view){
+currentView=view;
+var navItems=document.querySelectorAll('.nav-item');
+navItems.forEach(function(el,i){el.classList.toggle('active',viewNames[i]===view);});
+document.getElementById('compSwitcher').style.display=globalViews.indexOf(view)>=0?'none':'flex';
+if(globalViews.indexOf(view)>=0){
+document.querySelectorAll('.competitor-data').forEach(function(el){el.style.display='none';});
+globalViews.forEach(function(v){document.getElementById('view-'+v).classList.remove('visible');});
+document.getElementById('view-'+view).classList.add('visible');
+return;}
+globalViews.forEach(function(v){document.getElementById('view-'+v).classList.remove('visible');});
+document.querySelectorAll('.competitor-data').forEach(function(el){el.style.display='none';});
+var compEl=document.getElementById('comp-'+currentComp);
+if(compEl)compEl.style.display='block';
+compEl.querySelectorAll('.view').forEach(function(el){el.classList.remove('visible');});
+var targetView=document.getElementById(currentComp+'-'+currentView);
+if(targetView){targetView.classList.add('visible');}else{var fv=compEl.querySelector('.view');if(fv)fv.classList.add('visible');}
+}
+
+function showComp(comp,btn){
+if(compIds.indexOf(comp)<0)return;
+currentComp=comp;
+document.querySelectorAll('.comp-btn').forEach(function(el){el.classList.remove('active');});
+if(btn)btn.classList.add('active');
+showView(currentView);
+}
+
+// Google Sheets JSONP sync
+var sheetCallbackCounter=0;
+function refreshFromSheet(){
+var btn=document.getElementById('refreshBtn');
+var status=document.getElementById('refreshStatus');
+btn.classList.add('loading');btn.textContent='⏳ Syncing...';
+status.textContent='Fetching from Google Sheets...';
+
+var cbName='sheetCB_'+(++sheetCallbackCounter);
+window[cbName]=function(response){
+try{
+var rows=response.table.rows;
+var cols=response.table.cols;
+var colMap={};
+cols.forEach(function(c,i){colMap[c.label]=i;});
+
+var compCols={'6Sense':'6sense','Demandbase':'demandbase','ZoomInfo MarketingOS':'zoominfo','G2':'g2','TechTarget':'techtarget'};
+
+rows.forEach(function(row){
+var field=row.c[0]?row.c[0].v:null;
+if(!field||field.match(/^\d+\./))return;
+for(var colName in compCols){
+var ci=colMap[colName];
+if(ci===undefined)continue;
+var val=row.c[ci]?row.c[ci].v:null;
+if(!val)continue;
+var compId=compCols[colName];
+var cards=document.querySelectorAll('[data-comp="'+compId+'"][data-field="'+field+'"]');
+cards.forEach(function(card){
+card.innerHTML=val.replace(/ · /g,'<br>').replace(/⚠️/g,'<span class="warn">⚠️</span>').replace(/NEW/g,'<span class="warn">NEW</span>').replace(/PROS:/g,'<strong class="pos">PROS:</strong>').replace(/CONS:/g,'<strong class="neg">CONS:</strong>');
+});
+}
+});
+
+btn.classList.remove('loading');btn.textContent='✅ Synced!';
+var now=new Date();
+status.textContent='Last sync: '+now.toLocaleTimeString();
+refreshIntelFeed();
+setTimeout(function(){btn.textContent='🔄 Refresh from Sheet';},3000);
+}catch(err){
+btn.classList.remove('loading');btn.textContent='❌ Error';
+status.textContent='Sync failed — ensure sheet is published to web';
+setTimeout(function(){btn.textContent='🔄 Refresh from Sheet';},3000);
+console.error(err);
+}
+delete window[cbName];
+};
+
+var script=document.createElement('script');
+script.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:json;responseHandler:'+cbName+'&sheet=Competitor+Profiles';
+script.onerror=function(){
+btn.classList.remove('loading');btn.textContent='❌ Error';
+status.textContent='Cannot reach Google Sheets — check sharing settings';
+setTimeout(function(){btn.textContent='🔄 Refresh from Sheet';},3000);
+};
+document.head.appendChild(script);
+}
+
+// Intel Feed interactions
+function toggleIntelRow(row){
+var detail=row.nextElementSibling;
+var btn=row.querySelector('.expand-btn');
+if(detail&&detail.classList.contains('intel-row-detail')){
+  if(detail.style.display==='none'){
+    detail.style.display='table-row';row.classList.add('expanded');btn.textContent='▼';
+  }else{
+    detail.style.display='none';row.classList.remove('expanded');btn.textContent='▶';
+  }
+}
+}
+
+function filterIntel(comp,btn){
+document.querySelectorAll('.intel-filter').forEach(function(f){f.classList.remove('active');});
+if(btn)btn.classList.add('active');
+var rows=document.querySelectorAll('.intel-row');
+rows.forEach(function(r){
+  var detail=r.nextElementSibling;
+  var show=(comp==='all'||r.getAttribute('data-intel-comp')===comp||r.getAttribute('data-intel-comp').indexOf(comp)===0);
+  r.style.display=show?'':'none';
+  if(detail&&detail.classList.contains('intel-row-detail'))detail.style.display='none';
+  r.classList.remove('expanded');var b=r.querySelector('.expand-btn');if(b)b.textContent='▶';
+});
+}
+
+function updateIntelCounts(){
+var rows=document.querySelectorAll('.intel-row');
+var total=rows.length,crit=0,high=0,flagged=0;
+var compCounts={'6Sense':0,'Demandbase':0,'ZoomInfo':0,'G2':0,'TechTarget':0};
+rows.forEach(function(r){
+  var pb=r.querySelector('.priority-badge');
+  if(pb){
+    if(pb.classList.contains('critical'))crit++;
+    if(pb.classList.contains('high'))high++;
+  }
+  var detail=r.nextElementSibling;
+  if(detail){var flags=detail.querySelectorAll('.dv');flags.forEach(function(d){if(d.previousElementSibling&&d.previousElementSibling.textContent==='Auto-Flag Triggers'&&d.textContent!=='—')flagged++;});}
+  var c=r.getAttribute('data-intel-comp');
+  for(var k in compCounts){if(c&&c.indexOf(k)===0)compCounts[k]++;}
+});
+var tn=document.getElementById('intelTotalNum');if(tn)tn.textContent=total;
+var cn=document.getElementById('intelCriticalNum');if(cn)cn.textContent=crit;
+var hn=document.getElementById('intelHighNum');if(hn)hn.textContent=high;
+var fn=document.getElementById('intelFlaggedNum');if(fn)fn.textContent=flagged;
+var fa=document.getElementById('fc-all');if(fa)fa.textContent=total;
+for(var k in compCounts){var el=document.getElementById('fc-'+k);if(el)el.textContent=compCounts[k];}
+}
+
+// Intel Feed Google Sheets Sync
+function refreshIntelFeed(){
+var cbName='intelCB_'+(++sheetCallbackCounter);
+window[cbName]=function(response){
+try{
+var rows=response.table.rows;
+var cols=response.table.cols;
+var colMap={};
+cols.forEach(function(c,i){colMap[c.label]=i;});
+
+var tbody=document.getElementById('intelBody');
+tbody.innerHTML='';
+var compClassMap={'6Sense':'c6sense','Demandbase':'cdemandbase','ZoomInfo':'czoominfo','ZoomInfo MarketingOS':'czoominfo','G2':'cg2','TechTarget':'ctechtarget'};
+var compFilterMap={'ZoomInfo MarketingOS':'ZoomInfo'};
+
+rows.forEach(function(row){
+var getV=function(label){var ci=colMap[label];return ci!==undefined&&row.c[ci]?row.c[ci].v:null;};
+var getFV=function(label){var ci=colMap[label];if(ci===undefined||!row.c[ci])return null;var v=row.c[ci].f||row.c[ci].v;return v;};
+var comp=getV('Competitor');
+if(!comp)return;
+
+var date=getFV('Date')||'—';
+if(date&&typeof date==='string'){var m=date.match(/Date\((\d+),(\d+),(\d+)/);if(m)date=m[1]+'-'+String(parseInt(m[2])+1).padStart(2,'0')+'-'+m[3].padStart(2,'0');}
+var name=getV('Name')||'';
+var url=getV('URL')||'';
+var summary=getV('Summary')||'';
+var theme=getV('Theme')||'';
+var threat=getV('Threat Level')||'';
+var relevance=getV('Strategic Relevance')||'';
+var cWeight=getV('Content Type Weight')||'';
+var pScore=getV('Priority Score')||'';
+var pTier=getV('Priority Tier')||'Low';
+var routeTo=getV('Route To')||'';
+var takeaway=getV('Key Takeaway')||'';
+var flags=getV('Auto-Flag Triggers')||'';
+var source=getV('Source Type')||'';
+
+var tierClass=pTier.toLowerCase().replace(' ','');
+var compClass=compClassMap[comp]||'';
+var filterComp=compFilterMap[comp]||comp;
+
+var tr=document.createElement('tr');
+tr.className='intel-row';
+tr.setAttribute('data-intel-comp',filterComp);
+tr.setAttribute('onclick','toggleIntelRow(this)');
+var headlineHtml=url?'<a href="'+url+'" target="_blank" class="headline-link" onclick="event.stopPropagation()">'+name+'</a>':'<span class="headline-text">'+name+'</span>';
+tr.innerHTML='<td><button class="expand-btn">▶</button></td>'
++'<td style="white-space:nowrap">'+date+'</td>'
++'<td><span class="comp-tag '+compClass+'">'+comp+'</span></td>'
++'<td>'+headlineHtml+'<div class="intel-snippet">'+summary+'</div></td>'
++'<td><span class="priority-badge '+tierClass+'">'+pTier+' · '+pScore+'</span></td>'
++'<td><span class="theme-tag">'+theme+'</span></td>'
++'<td><span class="route-tag">'+routeTo+'</span></td>';
+tbody.appendChild(tr);
+
+var dr=document.createElement('tr');
+dr.className='intel-row-detail';
+dr.style.display='none';
+dr.innerHTML='<td colspan="7"><div class="intel-detail-grid">'
++'<div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">'+(takeaway||'—')+'</div></div>'
++'<div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">'+threat+' / '+relevance+' / '+cWeight+'</div></div>'
++'<div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">'+(source||'—')+'</span></div></div>'
++'<div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">'+(flags||'—')+'</div></div>'
++'<div class="intel-detail-item"><div class="dl">URL</div><div class="dv">'+(url?'<a href="'+url+'" target="_blank" class="headline-link">'+url+'</a>':'—')+'</div></div>'
++'<div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">'+pScore+'</div></div>'
++'</div></td>';
+tbody.appendChild(dr);
+});
+updateIntelCounts();
+}catch(err){console.error('Intel feed parse error:',err);}
+delete window[cbName];
+};
+var script=document.createElement('script');
+script.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:json;responseHandler:'+cbName+'&sheet=Intel+Feed';
+document.head.appendChild(script);
+}
+
+// Init default view
+showView('intelfeed');
+
+// URL param bypass
+(function(){var p=new URLSearchParams(window.location.search);if(p.get('token')===PASSWORD){document.getElementById('loginOverlay').style.display='none';document.getElementById('app').style.display='flex';};})();
+</script>
+</body>
+</html>

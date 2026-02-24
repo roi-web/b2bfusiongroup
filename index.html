@@ -7,7 +7,23 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0a0e1a;--surface:#111827;--surface2:#1a1f3a;--surface3:#141829;--border:#2a3050;--border2:#1e2440;--border3:#1a1f35;--text:#e0e4ef;--text2:#8b92a8;--text3:#6b7280;--text4:#4b5563;--accent:#60a5fa;--accent2:#3b82f6;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;--purple:#a78bfa;--cyan:#22d3ee}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+html,body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif !important;background:var(--bg) !important;color:var(--text) !important;min-height:100vh;line-height:1.5}
+/* Force dark theme — prevent WordPress/Divi style bleed */
+html{background:var(--bg) !important}
+.login-overlay{background:var(--bg) !important}
+.login-box{background:var(--surface) !important;color:var(--text) !important}
+.login-box h1,.login-box .sub,.login-box input{color:var(--text) !important}
+.app{background:var(--bg) !important;color:var(--text) !important}
+header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%) !important}
+.nav{background:var(--surface) !important}
+.content{color:var(--text) !important}
+.card-value{color:#c0c8d8 !important}
+.section-head h2{color:#fff !important}
+.headline-text{color:#fff !important}
+.intel-table td{color:#c0c8d8 !important}
+.intel-table th{color:var(--text3) !important;background:var(--surface) !important}
+.comp-table td{color:#c0c8d8 !important}
+.comp-table th{color:var(--text3) !important;background:#0d1117 !important}
 
 .login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000}
 .login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px;width:420px;text-align:center;box-shadow:0 24px 48px rgba(0,0,0,.4)}
@@ -28,7 +44,9 @@ header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)
 .badge{display:inline-block;padding:4px 10px;border-radius:12px;font-size:.68rem;font-weight:600}
 .badge-live{background:rgba(74,222,128,.12);color:var(--green)}
 .badge-count{background:rgba(96,165,250,.12);color:var(--accent)}
-.refresh-btn{padding:8px 16px;font-size:.75rem;border-radius:8px;display:flex;align-items:center;gap:6px}
+.refresh-btn,.add-comp-btn{padding:8px 16px;font-size:.75rem;border-radius:8px;display:flex;align-items:center;gap:6px}
+.add-comp-btn{background:linear-gradient(135deg,var(--purple),#7c3aed) !important;color:#fff !important;text-decoration:none !important;border:none;cursor:pointer;font-weight:600;transition:opacity .2s}
+.add-comp-btn:hover{opacity:.9}
 .refresh-btn.loading{opacity:.6;pointer-events:none}
 .refresh-status{font-size:.65rem;color:var(--text4)}
 
@@ -79,8 +97,9 @@ header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)
 .alert-detail strong{color:var(--text2)}
 .alert-example{background:#0d1117;border-left:3px solid var(--accent);padding:10px;border-radius:0 8px 8px 0;margin-top:8px;font-size:.7rem;color:var(--text2);font-family:'SF Mono',Monaco,monospace;line-height:1.5}
 
+
 /* Intel Feed Styles */
-.intel-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.intel-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
 .intel-stat{background:var(--surface3);border:1px solid var(--border2);border-radius:12px;padding:18px;text-align:center;transition:border-color .2s}
 .intel-stat:hover{border-color:var(--border)}
 .intel-stat .stat-num{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
@@ -119,15 +138,58 @@ header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)
 .comp-tag.ctechtarget{background:rgba(251,191,36,.12);color:var(--yellow)}
 .theme-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:600;background:rgba(255,255,255,.06);color:var(--text2)}
 .route-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:600;background:rgba(96,165,250,.08);color:var(--accent)}
-.source-tag{font-size:.63rem;color:var(--text4);font-style:italic}
 .expand-btn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:.8rem;padding:2px 6px;border-radius:4px;transition:background .15s}
 .expand-btn:hover{background:rgba(96,165,250,.12)}
 .headline-link{color:var(--accent);text-decoration:none;font-weight:600}.headline-link:hover{text-decoration:underline}
 .headline-text{font-weight:600;color:#fff}
 .intel-snippet{font-size:.72rem;color:var(--text3);margin-top:3px;line-height:1.4}
+.link-cell{text-align:center}
+.link-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:6px;background:rgba(96,165,250,.1);color:var(--accent);text-decoration:none;font-size:.85rem;transition:all .15s}
+.link-icon:hover{background:rgba(96,165,250,.25);transform:scale(1.1)}
+.link-none{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;color:var(--text4);font-size:.75rem}
 
 ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-@media(max-width:900px){.data-grid{grid-template-columns:1fr}.data-card.span2{grid-column:span 1}.comp-switcher{flex-wrap:wrap}.content{padding:16px}.comp-table{font-size:.7rem}}
+/* Mobile: tablets */
+@media(max-width:900px){
+.data-grid{grid-template-columns:1fr}.data-card.span2{grid-column:span 1}.comp-switcher{flex-wrap:wrap}.content{padding:16px}.comp-table{font-size:.7rem}
+.intel-detail-grid{grid-template-columns:1fr 1fr}
+.intel-summary{grid-template-columns:repeat(3,1fr);gap:8px}
+header{padding:12px 16px;flex-wrap:wrap;gap:8px}
+.header-right{flex-wrap:wrap;gap:8px}
+.nav{padding:0 16px}
+}
+/* Mobile: phones */
+@media(max-width:600px){
+header{flex-direction:column;align-items:flex-start;padding:12px 14px;gap:10px}
+.logo{font-size:.95rem}
+.header-right{width:100%;flex-wrap:wrap;gap:6px;justify-content:flex-start}
+.refresh-btn,.add-comp-btn{font-size:.68rem;padding:6px 10px}
+.refresh-status{font-size:.6rem;width:100%}
+.nav{padding:0 10px;gap:0}
+.nav-item{padding:9px 10px;font-size:.7rem}
+.comp-switcher{padding:8px 14px;gap:6px}
+.comp-btn{padding:5px 10px;font-size:.65rem}
+.content{padding:12px 14px}
+.intel-summary{grid-template-columns:1fr 1fr 1fr;gap:6px}
+.intel-stat{padding:12px 6px}
+.intel-stat .stat-num{font-size:1.4rem}
+.intel-stat .stat-label{font-size:.6rem}
+.intel-filters{gap:5px}
+.intel-filter{padding:5px 10px;font-size:.65rem}
+.intel-table{font-size:.7rem;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.intel-table thead{display:table;width:100%;table-layout:fixed}
+.intel-table tbody{display:table;width:100%;table-layout:fixed}
+.intel-table th,.intel-table td{padding:8px 6px}
+.intel-detail-grid{grid-template-columns:1fr;gap:6px}
+.intel-snippet{font-size:.65rem}
+.data-grid{grid-template-columns:1fr}
+.data-card.span2{grid-column:span 1}
+.comp-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.section-head h2{font-size:.8rem}
+.alert-config{padding:12px}
+.alert-example{font-size:.62rem}
+.login-box{width:90%;padding:28px 20px}
+}
 </style>
 </head>
 <body>
@@ -145,24 +207,23 @@ header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)
 <div class="app" id="app">
 <header>
 <div>
-<div class="logo">B2B Fusion — Competitive Intel</div>
-<div class="logo-sub">ABM/SaaS Market · 5 Competitors · Cross-functional</div>
+<div class="logo">Competitive Intel Dashboard <span style="font-weight:400;font-size:.85em;-webkit-text-fill-color:var(--text2);background:none">powered by</span> B2B Fusion</div>
+<div class="logo-sub">ABX/SaaS Market</div>
 </div>
 <div class="header-right">
-<span class="badge badge-live">5 Competitors</span>
-<span class="badge badge-count">30+ Fields</span>
+<a class="add-comp-btn" href="mailto:jon.russo@b2bfusiongroup.com?subject=Request%3A%20Add%20New%20Competitor&body=Competitor%20Name%3A%20%0AWebsite%3A%20%0AReason%20for%20Tracking%3A%20%0A%0ARequested%20by%3A%20" target="_blank">➕ Add a Competitor</a>
 <button class="refresh-btn" onclick="refreshFromSheet()" id="refreshBtn">🔄 Refresh from Sheet</button>
-<div class="refresh-status" id="refreshStatus">Last sync: local data</div>
+<div class="refresh-status" id="refreshStatus" style="color:var(--accent);font-size:.7rem">Updated hourly · Last sync: local data</div>
 </div>
 </header>
 
 <div class="nav" id="navBar"><div class="nav-item active" onclick="showView('intelfeed')">Intel Feed</div>
 <div class="nav-item" onclick="showView('profile')">Company Profile</div>
+<div class="nav-item" onclick="showView('battlecard')">Sales Battlecard</div>
 <div class="nav-item" onclick="showView('product')">Product &amp; Positioning</div>
 <div class="nav-item" onclick="showView('market')">Market Presence</div>
 <div class="nav-item" onclick="showView('gtm')">Go-to-Market</div>
 <div class="nav-item" onclick="showView('talent')">Talent Signals</div>
-<div class="nav-item" onclick="showView('battlecard')">Sales Battlecard</div>
 <div class="nav-item" onclick="showView('compare')">Side-by-Side</div>
 <div class="nav-item" onclick="showView('routing')">Routing &amp; Config</div></div>
 
@@ -177,7 +238,6 @@ header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)
 <!-- INTEL FEED (Global View) -->
 <div class="view visible" id="view-intelfeed">
 <div class="intel-summary">
-  <div class="intel-stat" id="intelTotal"><div class="stat-num" id="intelTotalNum">6</div><div class="stat-label">Total Intel Items</div></div>
   <div class="intel-stat critical" id="intelCritical"><div class="stat-num" id="intelCriticalNum">3</div><div class="stat-label">Critical</div></div>
   <div class="intel-stat high" id="intelHigh"><div class="stat-num" id="intelHighNum">1</div><div class="stat-label">High Priority</div></div>
   <div class="intel-stat flagged" id="intelFlagged"><div class="stat-num" id="intelFlaggedNum">1</div><div class="stat-label">Auto-Flagged</div></div>
@@ -203,115 +263,122 @@ header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)
   <th>Priority</th>
   <th>Theme</th>
   <th>Route To</th>
+  <th style="width:40px;text-align:center">Link</th>
 </tr>
 </thead>
 <tbody id="intelBody">
 
-<tr class="intel-row" data-intel-comp="6Sense" onclick="toggleIntelRow(this)">
-  <td><button class="expand-btn">▶</button></td>
+<tr class="intel-row" data-intel-comp="ZoomInfo" data-date="2026-02-21" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">&#9654;</button></td>
+  <td style="white-space:nowrap">2026-02-21</td>
+  <td><span class="comp-tag czoominfo">ZoomInfo</span></td>
+  <td><span class="headline-text">ZoomInfo Expands Product Offerings with AI and New Features</span><div class="intel-snippet">ZoomInfo has significantly enhanced its product line, launching features like ZoomInfo Copilot, an AI assistant, and expanding its intent data offerings.</div></td>
+  <td><span class="priority-badge medium">Medium &middot; 2.3</span></td>
+  <td><span class="theme-tag">Feature Update</span></td>
+  <td><span class="route-tag">Product/Advisory</span></td>
+  <td class="link-cell"><span class="link-none">&mdash;</span></td>
+</tr>
+<tr class="intel-row-detail" style="display:none"><td colspan="8"><div class="intel-detail-grid">
+  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor ZoomInfo's advancements in AI and product features closely.</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat / Relevance / Weight</div><div class="dv">2.0 / 2.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv">Google Alert</div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag</div><div class="dv">&mdash;</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">&mdash;</div></div>
+  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">2.3</div></div>
+</div></td></tr>
+
+<tr class="intel-row" data-intel-comp="ZoomInfo" data-date="2026-02-21" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">&#9654;</button></td>
+  <td style="white-space:nowrap">2026-02-21</td>
+  <td><span class="comp-tag czoominfo">ZoomInfo</span></td>
+  <td><span class="headline-text">ZoomInfo Expands Offerings with AI and Intent Data Enhancements</span><div class="intel-snippet">ZoomInfo has recently launched several key features including an AI assistant, ZoomInfo Copilot, and enhanced intent data capabilities to strengthen its competitive position.</div></td>
+  <td><span class="priority-badge high">High &middot; 2.3</span></td>
+  <td><span class="theme-tag">Feature Update</span></td>
+  <td><span class="route-tag">Product/Advisory</span></td>
+  <td class="link-cell"><span class="link-none">&mdash;</span></td>
+</tr>
+<tr class="intel-row-detail" style="display:none"><td colspan="8"><div class="intel-detail-grid">
+  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor ZoomInfo's new AI features and pricing strategy closely.</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat / Relevance / Weight</div><div class="dv">2.0 / 2.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv">Google Alert</div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag</div><div class="dv">&mdash;</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">&mdash;</div></div>
+  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">2.3</div></div>
+</div></td></tr>
+
+<tr class="intel-row" data-intel-comp="6Sense" data-date="2026-02-20" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">&#9654;</button></td>
   <td style="white-space:nowrap">2026-02-20</td>
   <td><span class="comp-tag c6sense">6Sense</span></td>
   <td><span class="headline-text">[EXAMPLE] 6Sense Launches RevvyAI Conversational Assistant</span><div class="intel-snippet">6Sense announces RevvyAI, a conversational AI assistant for revenue teams, enabling natural language queries across the platform.</div></td>
-  <td><span class="priority-badge critical">Critical · 3.0</span></td>
+  <td><span class="priority-badge critical">Critical &middot; 3.0</span></td>
   <td><span class="theme-tag">Product/Feature</span></td>
   <td><span class="route-tag">Product + Leadership</span></td>
+  <td class="link-cell"><a href="https://6sense.com/blog/revvyai" target="_blank" class="link-icon" onclick="event.stopPropagation()" title="View source">&#128279;</a></td>
 </tr>
-<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+<tr class="intel-row-detail" style="display:none"><td colspan="8"><div class="intel-detail-grid">
   <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Direct feature overlap with conversational AI capabilities. Assess positioning response and feature gap analysis.</div></div>
-  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">3.0 / 3.0 / 3.0</div></div>
-  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">RSS / Blog</span></div></div>
-  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat / Relevance / Weight</div><div class="dv">3.0 / 3.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv">RSS / Blog</div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag</div><div class="dv">&mdash;</div></div>
   <div class="intel-detail-item"><div class="dl">URL</div><div class="dv"><a href="https://6sense.com/blog/revvyai" target="_blank" class="headline-link">6sense.com/blog/revvyai</a></div></div>
   <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">3.0</div></div>
 </div></td></tr>
 
-<tr class="intel-row" data-intel-comp="ZoomInfo" onclick="toggleIntelRow(this)">
-  <td><button class="expand-btn">▶</button></td>
-  <td style="white-space:nowrap">2026-02-21</td>
-  <td><span class="comp-tag czoominfo">ZoomInfo</span></td>
-  <td><span class="headline-text">ZoomInfo Expands Product Offerings with AI and New Features</span><div class="intel-snippet">ZoomInfo has significantly enhanced its product line, launching features like ZoomInfo Copilot, an AI assistant, and expanding its intent data offerings.</div></td>
-  <td><span class="priority-badge medium">Medium · 2.3</span></td>
-  <td><span class="theme-tag">Feature Update</span></td>
-  <td><span class="route-tag">Product/Advisory</span></td>
-</tr>
-<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
-  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor ZoomInfo's advancements in AI and product features closely.</div></div>
-  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">2.0 / 2.0 / 3.0</div></div>
-  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
-  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
-  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
-  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">2.3</div></div>
-</div></td></tr>
-
-<tr class="intel-row" data-intel-comp="6Sense" onclick="toggleIntelRow(this)">
-  <td><button class="expand-btn">▶</button></td>
+<tr class="intel-row" data-intel-comp="6Sense" data-date="2026-02-12" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">&#9654;</button></td>
   <td style="white-space:nowrap">2026-02-12</td>
   <td><span class="comp-tag c6sense">6Sense</span></td>
   <td><span class="headline-text">6Sense humor festival: an unexpected turn</span><div class="intel-snippet">A humorous event featuring a festival themed around the concept of '6th sense' has emerged in Poland, potentially affecting 6Sense's brand perception.</div></td>
-  <td><span class="priority-badge low">Low · 1.0</span></td>
+  <td><span class="priority-badge low">Low &middot; 1.0</span></td>
   <td><span class="theme-tag">Other</span></td>
   <td><span class="route-tag">Monitor Only</span></td>
+  <td class="link-cell"><span class="link-none">&mdash;</span></td>
 </tr>
-<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+<tr class="intel-row-detail" style="display:none"><td colspan="8"><div class="intel-detail-grid">
   <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Keep an eye on potential brand perception issues for 6Sense.</div></div>
-  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">1.0 / 1.0 / 1.0</div></div>
-  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
-  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
-  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat / Relevance / Weight</div><div class="dv">1.0 / 1.0 / 1.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv">Google Alert</div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag</div><div class="dv">&mdash;</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">&mdash;</div></div>
   <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">1.0</div></div>
 </div></td></tr>
 
-<tr class="intel-row" data-intel-comp="ZoomInfo" onclick="toggleIntelRow(this)">
-  <td><button class="expand-btn">▶</button></td>
-  <td style="white-space:nowrap">2026-02-21</td>
-  <td><span class="comp-tag czoominfo">ZoomInfo</span></td>
-  <td><span class="headline-text">ZoomInfo Expands Offerings with AI and Intent Data Enhancements</span><div class="intel-snippet">ZoomInfo has recently launched several key features including an AI assistant, ZoomInfo Copilot, and enhanced intent data capabilities to strengthen its competitive position.</div></td>
-  <td><span class="priority-badge high">High · 2.3</span></td>
-  <td><span class="theme-tag">Feature Update</span></td>
-  <td><span class="route-tag">Product/Advisory</span></td>
-</tr>
-<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
-  <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor ZoomInfo's new AI features and pricing strategy closely.</div></div>
-  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">2.0 / 2.0 / 3.0</div></div>
-  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
-  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
-  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
-  <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">2.3</div></div>
-</div></td></tr>
-
-<tr class="intel-row" data-intel-comp="Demandbase" onclick="toggleIntelRow(this)">
-  <td><button class="expand-btn">▶</button></td>
-  <td style="white-space:nowrap">—</td>
+<tr class="intel-row" data-intel-comp="Demandbase" data-date="" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">&#9654;</button></td>
+  <td style="white-space:nowrap">&mdash;</td>
   <td><span class="comp-tag cdemandbase">Demandbase</span></td>
   <td><span class="headline-text">Demandbase launches AI-powered "Smarter GTM" platform</span><div class="intel-snippet">Demandbase has introduced a unified go-to-market platform, enhancing their position in the competitive ABM landscape.</div></td>
-  <td><span class="priority-badge critical">Critical · 3.0</span></td>
+  <td><span class="priority-badge critical">Critical &middot; 3.0</span></td>
   <td><span class="theme-tag">Product Launch</span></td>
   <td><span class="route-tag">Product/Advisory</span></td>
+  <td class="link-cell"><span class="link-none">&mdash;</span></td>
 </tr>
-<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+<tr class="intel-row-detail" style="display:none"><td colspan="8"><div class="intel-detail-grid">
   <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor Demandbase's new offerings for strategic insights.</div></div>
-  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">3.0 / 3.0 / 3.0</div></div>
-  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
-  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">—</div></div>
-  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat / Relevance / Weight</div><div class="dv">3.0 / 3.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv">Google Alert</div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag</div><div class="dv">&mdash;</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">&mdash;</div></div>
   <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">3.0</div></div>
 </div></td></tr>
 
-<tr class="intel-row" data-intel-comp="TechTarget" onclick="toggleIntelRow(this)">
-  <td><button class="expand-btn">▶</button></td>
-  <td style="white-space:nowrap">—</td>
+<tr class="intel-row" data-intel-comp="TechTarget" data-date="" onclick="toggleIntelRow(this)">
+  <td><button class="expand-btn">&#9654;</button></td>
+  <td style="white-space:nowrap">&mdash;</td>
   <td><span class="comp-tag ctechtarget">TechTarget</span></td>
   <td><span class="headline-text">TechTarget Merges with Informa Tech for Enhanced Positioning</span><div class="intel-snippet">TechTarget has announced its merger with Informa Tech, which may shift dynamics in the ABM and marketing technology landscape.</div></td>
-  <td><span class="priority-badge critical">Critical · 2.7</span></td>
+  <td><span class="priority-badge critical">Critical &middot; 2.7</span></td>
   <td><span class="theme-tag">Acquisition</span></td>
   <td><span class="route-tag">Marketing</span></td>
+  <td class="link-cell"><span class="link-none">&mdash;</span></td>
 </tr>
-<tr class="intel-row-detail" style="display:none"><td colspan="7"><div class="intel-detail-grid">
+<tr class="intel-row-detail" style="display:none"><td colspan="8"><div class="intel-detail-grid">
   <div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">Monitor TechTarget's merger effects on market positioning.</div></div>
-  <div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">2.0 / 3.0 / 3.0</div></div>
-  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">Google Alert</span></div></div>
-  <div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">Merger announcement</div></div>
-  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">—</div></div>
+  <div class="intel-detail-item"><div class="dl">Threat / Relevance / Weight</div><div class="dv">2.0 / 3.0 / 3.0</div></div>
+  <div class="intel-detail-item"><div class="dl">Source</div><div class="dv">Google Alert</div></div>
+  <div class="intel-detail-item"><div class="dl">Auto-Flag</div><div class="dv">Merger announcement</div></div>
+  <div class="intel-detail-item"><div class="dl">URL</div><div class="dv">&mdash;</div></div>
   <div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">2.7</div></div>
 </div></td></tr>
 
@@ -319,6 +386,7 @@ header{background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%)
 </table>
 </div>
 </div>
+
 
 <div class="competitor-data" id="comp-6sense">
 <div class="view visible" id="6sense-profile">
@@ -1136,7 +1204,7 @@ var viewNames=["intelfeed", "profile", "product", "market", "gtm", "talent", "ba
 var globalViews=['intelfeed','compare','routing'];
 var compIds=["6sense", "demandbase", "zoominfo", "g2", "techtarget"];
 
-function doLogin(){var pw=document.getElementById('loginPassword').value;if(pw===PASSWORD){document.getElementById('loginOverlay').style.display='none';document.getElementById('app').style.display='flex';}else{document.getElementById('loginError').style.display='block';}}
+function doLogin(){var pw=document.getElementById('loginPassword').value;if(pw===PASSWORD){document.getElementById('loginOverlay').style.display='none';document.getElementById('app').style.display='flex';setTimeout(function(){refreshFromSheet();},300);}else{document.getElementById('loginError').style.display='block';}}
 
 function showView(view){
 currentView=view;
@@ -1201,7 +1269,8 @@ card.innerHTML=val.replace(/ · /g,'<br>').replace(/⚠️/g,'<span class="warn"
 
 btn.classList.remove('loading');btn.textContent='✅ Synced!';
 var now=new Date();
-status.textContent='Last sync: '+now.toLocaleTimeString();
+var ctTime=now.toLocaleTimeString('en-US',{timeZone:'America/Chicago',hour:'numeric',minute:'2-digit',hour12:true});
+status.textContent='Updated hourly · Last sync: '+ctTime+' CT';
 refreshIntelFeed();
 setTimeout(function(){btn.textContent='🔄 Refresh from Sheet';},3000);
 }catch(err){
@@ -1214,7 +1283,7 @@ delete window[cbName];
 };
 
 var script=document.createElement('script');
-script.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:json;responseHandler:'+cbName+'&sheet=Competitor+Profiles';
+script.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:json;responseHandler:'+cbName+'&sheet=Competitor+Profiles&headers=1';
 script.onerror=function(){
 btn.classList.remove('loading');btn.textContent='❌ Error';
 status.textContent='Cannot reach Google Sheets — check sharing settings';
@@ -1223,15 +1292,16 @@ setTimeout(function(){btn.textContent='🔄 Refresh from Sheet';},3000);
 document.head.appendChild(script);
 }
 
+
 // Intel Feed interactions
 function toggleIntelRow(row){
 var detail=row.nextElementSibling;
 var btn=row.querySelector('.expand-btn');
 if(detail&&detail.classList.contains('intel-row-detail')){
   if(detail.style.display==='none'){
-    detail.style.display='table-row';row.classList.add('expanded');btn.textContent='▼';
+    detail.style.display='table-row';row.classList.add('expanded');btn.innerHTML='&#9660;';
   }else{
-    detail.style.display='none';row.classList.remove('expanded');btn.textContent='▶';
+    detail.style.display='none';row.classList.remove('expanded');btn.innerHTML='&#9654;';
   }
 }
 }
@@ -1245,7 +1315,7 @@ rows.forEach(function(r){
   var show=(comp==='all'||r.getAttribute('data-intel-comp')===comp||r.getAttribute('data-intel-comp').indexOf(comp)===0);
   r.style.display=show?'':'none';
   if(detail&&detail.classList.contains('intel-row-detail'))detail.style.display='none';
-  r.classList.remove('expanded');var b=r.querySelector('.expand-btn');if(b)b.textContent='▶';
+  r.classList.remove('expanded');var b=r.querySelector('.expand-btn');if(b)b.innerHTML='&#9654;';
 });
 }
 
@@ -1260,7 +1330,7 @@ rows.forEach(function(r){
     if(pb.classList.contains('high'))high++;
   }
   var detail=r.nextElementSibling;
-  if(detail){var flags=detail.querySelectorAll('.dv');flags.forEach(function(d){if(d.previousElementSibling&&d.previousElementSibling.textContent==='Auto-Flag Triggers'&&d.textContent!=='—')flagged++;});}
+  if(detail){var items=detail.querySelectorAll('.intel-detail-item');items.forEach(function(d){var lbl=d.querySelector('.dl');var val=d.querySelector('.dv');if(lbl&&val&&lbl.textContent==='Auto-Flag'&&val.textContent!=='\u2014'&&val.textContent!=='—')flagged++;});}
   var c=r.getAttribute('data-intel-comp');
   for(var k in compCounts){if(c&&c.indexOf(k)===0)compCounts[k]++;}
 });
@@ -1272,7 +1342,7 @@ var fa=document.getElementById('fc-all');if(fa)fa.textContent=total;
 for(var k in compCounts){var el=document.getElementById('fc-'+k);if(el)el.textContent=compCounts[k];}
 }
 
-// Intel Feed Google Sheets Sync
+// Intel Feed Google Sheets Sync — sorts newest first
 function refreshIntelFeed(){
 var cbName='intelCB_'+(++sheetCallbackCounter);
 window[cbName]=function(response){
@@ -1280,63 +1350,78 @@ try{
 var rows=response.table.rows;
 var cols=response.table.cols;
 var colMap={};
-cols.forEach(function(c,i){colMap[c.label]=i;});
+var colMapLower={};
+cols.forEach(function(c,i){colMap[c.label]=i;colMapLower[c.label.toLowerCase().trim()]=i;});
+console.log('Intel Feed columns:',Object.keys(colMap));
+
+// Parse all rows into array for sorting
+var items=[];
+rows.forEach(function(row){
+var getV=function(label){var ci=colMap[label];if(ci===undefined)ci=colMapLower[label.toLowerCase()];return ci!==undefined&&row.c[ci]?row.c[ci].v:null;};
+var getFV=function(label){var ci=colMap[label];if(ci===undefined)ci=colMapLower[label.toLowerCase()];if(ci===undefined||!row.c[ci])return null;return row.c[ci].f||row.c[ci].v;};
+var comp=getV('Competitor');
+if(!comp)return;
+
+var date=getFV('Date')||'';
+var sortDate='';
+if(date&&typeof date==='string'){
+  var m=date.match(/Date\((\d+),(\d+),(\d+)/);
+  if(m){sortDate=m[1]+'-'+String(parseInt(m[2])+1).padStart(2,'0')+'-'+m[3].padStart(2,'0');date=sortDate;}
+}
+if(!sortDate&&date)sortDate=date.toString().substring(0,10);
+
+var urlVal=getV('URL')||getV('Url')||getV('url')||getV('Link')||getV('Source URL')||'';
+items.push({
+  date:date||'—',sortDate:sortDate||'0000-00-00',
+  comp:comp,name:getV('Name')||'',url:urlVal,
+  summary:getV('Summary')||'',theme:getV('Theme')||'',
+  threat:getV('Threat Level')||'',relevance:getV('Strategic Relevance')||'',
+  cWeight:getV('Content Type Weight')||'',pScore:getV('Priority Score')||'',
+  pTier:getV('Priority Tier')||'Low',routeTo:getV('Route To')||'',
+  takeaway:getV('Key Takeaway')||'',flags:getV('Auto-Flag Triggers')||'',
+  source:getV('Source Type')||''
+});
+});
+
+// SORT NEWEST FIRST
+items.sort(function(a,b){return b.sortDate.localeCompare(a.sortDate);});
 
 var tbody=document.getElementById('intelBody');
 tbody.innerHTML='';
 var compClassMap={'6Sense':'c6sense','Demandbase':'cdemandbase','ZoomInfo':'czoominfo','ZoomInfo MarketingOS':'czoominfo','G2':'cg2','TechTarget':'ctechtarget'};
 var compFilterMap={'ZoomInfo MarketingOS':'ZoomInfo'};
 
-rows.forEach(function(row){
-var getV=function(label){var ci=colMap[label];return ci!==undefined&&row.c[ci]?row.c[ci].v:null;};
-var getFV=function(label){var ci=colMap[label];if(ci===undefined||!row.c[ci])return null;var v=row.c[ci].f||row.c[ci].v;return v;};
-var comp=getV('Competitor');
-if(!comp)return;
-
-var date=getFV('Date')||'—';
-if(date&&typeof date==='string'){var m=date.match(/Date\((\d+),(\d+),(\d+)/);if(m)date=m[1]+'-'+String(parseInt(m[2])+1).padStart(2,'0')+'-'+m[3].padStart(2,'0');}
-var name=getV('Name')||'';
-var url=getV('URL')||'';
-var summary=getV('Summary')||'';
-var theme=getV('Theme')||'';
-var threat=getV('Threat Level')||'';
-var relevance=getV('Strategic Relevance')||'';
-var cWeight=getV('Content Type Weight')||'';
-var pScore=getV('Priority Score')||'';
-var pTier=getV('Priority Tier')||'Low';
-var routeTo=getV('Route To')||'';
-var takeaway=getV('Key Takeaway')||'';
-var flags=getV('Auto-Flag Triggers')||'';
-var source=getV('Source Type')||'';
-
-var tierClass=pTier.toLowerCase().replace(' ','');
-var compClass=compClassMap[comp]||'';
-var filterComp=compFilterMap[comp]||comp;
+items.forEach(function(item){
+var compClass=compClassMap[item.comp]||'';
+var filterComp=compFilterMap[item.comp]||item.comp;
+var tierClass=item.pTier.toLowerCase().replace(' ','');
+var headlineHtml=item.url?'<a href="'+item.url+'" target="_blank" class="headline-link" onclick="event.stopPropagation()">'+item.name+'</a>':'<span class="headline-text">'+item.name+'</span>';
 
 var tr=document.createElement('tr');
 tr.className='intel-row';
 tr.setAttribute('data-intel-comp',filterComp);
+tr.setAttribute('data-date',item.sortDate);
 tr.setAttribute('onclick','toggleIntelRow(this)');
-var headlineHtml=url?'<a href="'+url+'" target="_blank" class="headline-link" onclick="event.stopPropagation()">'+name+'</a>':'<span class="headline-text">'+name+'</span>';
-tr.innerHTML='<td><button class="expand-btn">▶</button></td>'
-+'<td style="white-space:nowrap">'+date+'</td>'
-+'<td><span class="comp-tag '+compClass+'">'+comp+'</span></td>'
-+'<td>'+headlineHtml+'<div class="intel-snippet">'+summary+'</div></td>'
-+'<td><span class="priority-badge '+tierClass+'">'+pTier+' · '+pScore+'</span></td>'
-+'<td><span class="theme-tag">'+theme+'</span></td>'
-+'<td><span class="route-tag">'+routeTo+'</span></td>';
+tr.innerHTML='<td><button class="expand-btn">&#9654;</button></td>'
++'<td style="white-space:nowrap">'+item.date+'</td>'
++'<td><span class="comp-tag '+compClass+'">'+item.comp+'</span></td>'
++'<td>'+headlineHtml+'<div class="intel-snippet">'+item.summary+'</div></td>'
++'<td><span class="priority-badge '+tierClass+'">'+item.pTier+' &middot; '+item.pScore+'</span></td>'
++'<td><span class="theme-tag">'+item.theme+'</span></td>'
++'<td><span class="route-tag">'+item.routeTo+'</span></td>'
++'<td class="link-cell">'+(item.url?'<a href="'+item.url+'" target="_blank" class="link-icon" onclick="event.stopPropagation()" title="View source">&#128279;</a>':'<span class="link-none">&mdash;</span>')+'</td>';
 tbody.appendChild(tr);
 
 var dr=document.createElement('tr');
 dr.className='intel-row-detail';
 dr.style.display='none';
-dr.innerHTML='<td colspan="7"><div class="intel-detail-grid">'
-+'<div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">'+(takeaway||'—')+'</div></div>'
-+'<div class="intel-detail-item"><div class="dl">Threat Level / Relevance / Content Weight</div><div class="dv">'+threat+' / '+relevance+' / '+cWeight+'</div></div>'
-+'<div class="intel-detail-item"><div class="dl">Source</div><div class="dv"><span class="source-tag">'+(source||'—')+'</span></div></div>'
-+'<div class="intel-detail-item"><div class="dl">Auto-Flag Triggers</div><div class="dv">'+(flags||'—')+'</div></div>'
-+'<div class="intel-detail-item"><div class="dl">URL</div><div class="dv">'+(url?'<a href="'+url+'" target="_blank" class="headline-link">'+url+'</a>':'—')+'</div></div>'
-+'<div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">'+pScore+'</div></div>'
+dr.innerHTML='<td colspan="8"><div class="intel-detail-grid">'
++'<div class="intel-detail-item"><div class="dl">Key Takeaway</div><div class="dv">'+(item.takeaway||'—')+'</div></div>'
++'<div class="intel-detail-item"><div class="dl">Threat / Relevance / Weight</div><div class="dv">'+item.threat+' / '+item.relevance+' / '+item.cWeight+'</div></div>'
++'<div class="intel-detail-item"><div class="dl">Source</div><div class="dv">'+(item.source||'—')+'</div></div>'
++'<div class="intel-detail-item"><div class="dl">Auto-Flag</div><div class="dv">'+(item.flags||'—')+'</div></div>'
++'<div class="intel-detail-item"><div class="dl">URL</div><div class="dv">'+(item.url?'<a href="'+item.url+'" target="_blank" class="headline-link">'+item.url+'</a>':'—')+'</div></div>'
++'<div class="intel-detail-item"><div class="dl">Priority Score</div><div class="dv">'+item.pScore+'</div></div>'
 +'</div></td>';
 tbody.appendChild(dr);
 });
@@ -1345,15 +1430,19 @@ updateIntelCounts();
 delete window[cbName];
 };
 var script=document.createElement('script');
-script.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:json;responseHandler:'+cbName+'&sheet=Intel+Feed';
+script.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:json;responseHandler:'+cbName+'&sheet=Intel+Feed&headers=1';
+script.onerror=function(){console.error('Intel Feed sync failed — cannot reach Google Sheets');};
 document.head.appendChild(script);
 }
 
 // Init default view
 showView('intelfeed');
 
+// Auto-refresh every 60 minutes
+setInterval(function(){refreshFromSheet();},3600000);
+
 // URL param bypass
-(function(){var p=new URLSearchParams(window.location.search);if(p.get('token')===PASSWORD){document.getElementById('loginOverlay').style.display='none';document.getElementById('app').style.display='flex';};})();
+(function(){var p=new URLSearchParams(window.location.search);if(p.get('token')===PASSWORD){document.getElementById('loginOverlay').style.display='none';document.getElementById('app').style.display='flex';refreshFromSheet();};})();
 </script>
 </body>
 </html>
